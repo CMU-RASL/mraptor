@@ -1,0 +1,976 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title></title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Documentation for mraptord, the
+Microraptor daemon.">
+<h2>Daemon Documentation</h2>
+
+<div class="content">The Microraptor daemon (mraptord) is part of the back end
+infrastructure of the Microraptor network, which works as follows:
+<ul>
+  <li> In order for modules (clients and daemons) on the Microraptor
+       network to discover each other
+       and communicate, one instance of the IPC central server (called 'central') must be running.
+       You can run central on any host; other modules must be told the location of central using the CENTRALHOST
+       environment variable.
+  <li> In order for the Microraptor network to control processes on a host,
+       that host must be running an instance of mraptord.
+</ul></div>
+
+<div class="content">In typical use, both the single instance of central and
+per-host instances of mraptord are started when hosts boot using
+standard boot scripts (in <span class="ic">/etc/init.d</span> on
+SysV-ish UNIX systems).  After these back-end elements of the network
+are running, clients can run, kill, and monitor processes by sending
+commands to an instance of mraptord.</div>
+
+<div class="content">The rest of this document describes the console
+interface clients use to communicate with mraptord.  If you are a power
+user who wants the textual interface and scripting ability, you can use
+the commands below directly through the <a
+href="index.html.page=docs.mrterm">mrterm</a> client.  Just run mrterm
+and start typing.</div>
+
+<div class="content">Most users, however, will prefer to use the
+<a href="index.html.page=docs.claw">claw</a> graphical client, which
+hides this raw interface under the hood.</div>
+
+<a name="serialInterface">
+<h3>The Daemon Serial Interface</h3>
+
+<div class="content">There are two portions to mraptord's interface:
+commands that can be sent to the daemon, and responses which the
+daemon sends to clients:</div>
+<ul>
+  <li><div><a href="index.html.page=docs.daemon#commands">Daemon Commands</a></div></li>
+  <li><div><a href="index.html.page=docs.daemon#responses">Daemon Responses</a></div></li>
+</ul>
+
+<a name="commands">
+<h4>Daemon Commands</h4>
+
+<div class="content">
+<a href="index.html.page=docs.daemon#cancel">cancel</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#dhelp">dhelp</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#dload">dload</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#dquit">dquit</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#dshout">dshout</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#get">get</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#ipc">ipc</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#kill">kill</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#restart">restart</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#run">run</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#run_slave">run_slave</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#set">set</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#signal">signal</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#stdin">stdin</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#sub">sub</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#unsub">unsub</a>
+</div>
+
+<ul>
+  <a name="cancel">
+  <li><b>cancel</b><br>
+
+    <div class="content">Cancels the effects of unfinished <a
+    href="index.html.page=docs.daemon#run">run</a> commands.  Specifically: if there are pending
+    processes (processes waiting for other processes to finish
+    startup), their <a href="index.html.page=docs.daemon#status">status</a> is changed from "pending" to
+    "not_started".</div>
+  </li>
+
+  <a name="dhelp">
+  <li><b>dhelp</b><br>
+
+    <div class="content">Get user help, which is returned in the form of
+    <a href="index.html.page=docs.daemon#help">help</a> responses.</div>
+  </li>
+
+  <a name="dload">
+  <li><b>dload</b><br>
+
+    <div class="content"> Load the given daemon-side config file.</div>
+      <div class="content">syntax:</div>
+      <pre class="indent">dload &lt;config_file_name&gt;</pre>
+     <div class="content">examples:</div>
+      <pre class="indent">dload example.config</pre>
+      <br>
+  </li>
+
+  <a name="dquit">
+  <li><b>dquit</b><br>
+
+    <div class="content">Causes the daemon to shut down, flushing all
+    log files.</div>
+  </li>
+
+  <a name="dshout">
+  <li><b>dshout</b><br>
+
+    <div class="content">When any client issues the dshout command, the daemon forwards the
+       message as a <span class="ic">"shout"</span> response to all clients that are subscribed using
+       <span class="ic>"sub shout"</span>.  This can be used to support simple chat functionality
+       between clients.
+       </div>
+
+       <div class="content">syntax:</div>
+<pre class="indent">dshout brennan &quot;marco!&quot;</pre>
+</pre><br>
+  </li>
+
+  <a name="get">
+  <li><b>get</b><br>
+
+    <div class="content">Gets the current value of some daemon
+    variable.  Possible variables are <a href="index.html.page=docs.daemon#status">status</a>,
+    <a href="index.html.page=docs.daemon#config">config</a>, and
+    <a href="index.html.page=docs.daemon#clock">clock</a>.  Each variable has a
+    corresponding response message; see the <a
+    href="index.html.page=docs.daemon#responses">response syntax</a> section.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">get &lt;variable&gt; &lt;extra_args&gt;
+  1. get status -a
+     get status &lt;process1&gt; [ &lt;process2&gt; ... ]
+  2. get config -a
+     get config &lt;process1&gt; [ &lt;process2&gt; ... ]
+  3. get clock
+</pre>
+
+    <div class="content">examples:</div>
+<pre class="indent">
+get status -a
+get status ctr ctpan
+get config ctr
+get clock
+</pre>
+  <br>
+  </li>
+
+  <a name="ipc">
+  <li><b>ipc</b><br>
+
+    <div class="content"><font color="red"><b>This command is deprecated.</b></font>
+    Publishes an empty IPC message with the given
+    message name (some processes may wait for such a signal before
+    taking an action).</div>
+
+    <div class="content">syntax:</div>
+    <pre class="indent">ipc &lt;message_name&gt;</pre>
+
+    <div class="content">examples:</div>
+    <pre class="indent">ipc self_destruct</pre>
+
+    <div class="content">[ you may not want to run the above example :-) ]</div>
+  </li>
+
+  <a name="kill">
+  <li><b>kill</b><br>
+
+    <div class="content">Kills the given processes (or all processes,
+    if -a is specified).  How to kill the process can be specified
+    using the <a href="index.html.page=docs.daemon#kill_cmd">kill_cmd</a> and <a
+    href="index.html.page=docs.daemon#backup_kill_cmd">backup_kill_cmd</a>, and <a
+    href="index.html.page=docs.daemon#backup_kill_delay">backup_kill_delay</a> fields of its
+    configuration (refer to the <a href="index.html.page=docs.daemon#set"><span class="ic">set
+    config</span></a> command).  The default behavior is to send
+    SIGTERM (15), wait 5 seconds for a clean shutdown, then send
+    SIGKILL (9) if the process is still running.</div>
+
+    <div class="content">Usually causes all clients to get a <a href="index.html.page=docs.daemon#status">status</a>
+    message for each killed process indicating that the process now
+    has "signal_exit" status.</div>
+
+    <div class="content"><font color="red"><b>The -p option, which was meaningful in earlier versions
+    of mraptord, is now deprecated and silently ignored.</b></font></div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+1. kill -a
+2. kill [ -p ] &lt;process1&gt; [ &lt;process2&gt; ... ]
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+kill -a
+kill ctr
+kill ctr ctpan
+</pre>
+    <div class="content"></div>
+
+  </li>
+
+  <a name="restart">
+  <li><b>restart</b><br>
+
+    <div class="content">Restarts the given processes (or all processes,
+    if -a is specified). To restart a process, the daemon kills it,
+    waits for it to die, then runs it.</div>
+
+    <div class="content"><b>Note:</b> For ease of implementation,
+    restarting multiple processes (or a group!) has the following
+    semantics: <span class="ic">restart a b</span> is the same as
+    issuing separate commands <span
+    class="ic">restart a</span> and <span class="ic">restart
+    b</span>. In particular:</div>
+
+    <ul>
+      <li>When process 'a' dies, <span class="ic">run a</span> is immediately issued,
+          regardless of whether 'b' is dead yet.  (And vice versa.)</li>
+    </ul>
+
+    <div class="content"><font color="red"><b>The -p option, which was meaningful in earlier versions of
+    mraptord, is now deprecated and silently ignored.</b></font></div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+1. restart -a
+2. restart [ -p ] &lt;process1&gt; [ &lt;process2&gt; ... ]
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+restart -a
+restart ctr
+restart ctr ctpan
+</pre>
+    <div class="content"></div>
+  </li>
+
+  <a name="run">
+  <li><b>run</b><br>
+
+    <div class="content">Executes the given processes (or all processes,
+    if -a is specified). Usually causes all clients to get a <a href="index.html.page=docs.daemon#status">status</a>
+    message for each process indicating that the process now has the
+    "running" status.</div>
+
+    <div class="content"><font color="red"><b>The -p option, which was meaningful in earlier versions
+    of mraptord, is now deprecated and silently ignored.</b></font></div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+1. run -a
+2. run [ -p ] &lt;process1&gt; [ &lt;process2&gt; ... ]
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+run -a
+run ctr
+run ctr ctpan
+run ctr ctpan
+</pre>
+    <div class="content"></div>
+  </li>
+
+  <a name="run_slave">
+  <li><b>run_slave</b><br>
+
+    <div class="content">This command should be sent only from one
+    daemon to another.  It is used to handle cross-machine <a
+    href="index.html.page=docs.daemon#run">run</a> commands.  The &lt;client&gt; field specifies
+    the client which sent the original run command (which is important
+    if there are client-specific environment variable settings).</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+run_slave &lt;client&gt; [-p] &lt;process1&gt; [ &lt;process2&gt; ... ]
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+run_slave c_sputnik_33708 ctr
+run_slave c_sputnik_33708 ctr ctpan
+run_slave c_sputnik_33708 -p ctr ctpan
+</pre>
+
+  </li>
+
+  <a name="set">
+  <li><b>set</b><br>
+
+    <div class="content"> Sets the value of a daemon variable.
+    Currently, the only possible variables are "config", "client", and
+    "buffer block".</div>
+
+    <div class="content"> <span class="ic">set config</span> creates a process record for
+    the given process name, and sets its configuration variables (such
+    as &lt;cmd&gt;, &lt;env&gt;, etc).  The second form of set config
+    sends an entire config file in one command.</div>
+
+    <div class="content"> The "prior" string that optionally appears
+    after version 2 of the <span class="ic">set config</span> syntax indicates that the
+    command is from a module that connected before the daemon
+    connected.  If "prior" is present, any conflicts between same-name
+    processes in the stored configuration and the incoming
+    configuration should be resolved in favor of the (more recently
+    loaded) stored configuration.  Otherwise they should be resolved
+    in favor of the incoming configuration.</div>
+
+    <div class="content"> <span class="ic">set client</span> notifies the daemon about
+    settings specific to a particular client.  If a client sends
+    <span class="ic">set client {DISPLAY="clienthost:0"}</span>, and then runs a
+    process with the configuration <span class="ic">env => {DISPLAY => "%c"}</span>,
+    the "%c" pattern in the DISPLAY variable will be replaced with the
+    client setting "clienthost:0".</div>
+
+    <div class="content"> <span class="ic">set buffer block</span> tells the daemon to
+    use a more efficient buffering scheme over the serial connection
+    to the client. (The serial connection is not flushed after every line, and
+    multiple lines may be packed into a single IPC message.)
+    Block buffering may introduce small delays (~0.5 s) before
+    messages are forwarded, but significantly improves throughput over high-latency
+    connections. Block buffering is off by default in order to avoid
+    breaking obsolete
+    versions of claw, mrterm, and mraptord.  <font
+    color="red"><b>Obsolete mraptor modules (version &lt; 1.1.2) that do
+    not support block buffering are deprecated.</b></font></div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+1. set config &lt;process_name&gt; &lt;process_config&gt;
+2. set config &lt;entire_config_file&gt; [prior]
+3. set client &lt;client_config&gt;
+4. set buffer block
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+set config ctr { cmd=/bin/ctr, env={DISPLAY=":0.0", LD_LIBRARY_PATH=/lib} }
+set config {groups={normal="ctr ctpan"},
+            processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+set config {groups={normal="ctr ctpan"},
+            processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+           prior
+set client {DISPLAY => "clienthost:0.0"}
+set buffer block
+</pre>
+
+<a name="processConfig">
+<div class="content"><b>&lt;process_config&gt; fields</b></div>
+<ul>
+  <li><b>cmd (string)</b>
+    <div class="content">Command to run on the remote host to start the process</div>
+  </li>
+  <li><b>working_dir (string)</b>
+    <div class="content">If supplied, change to this directory before running &lt;cmd&gt;</div>
+  </li>
+  <li><b>log_file (string)</b>
+    <div class="content">If supplied, log process stdout to a file whose name is generated
+    according to the specified name template.  The name template can
+    include the following patterns:</div>
+
+      <ul>
+        <li><b>%n</b>: replaced with the process name</li>
+        <li><b>%u</b>: replaced with a 4-digit string that makes the
+        filename unique</li>
+      </ul>
+
+    <div class="content"> The format of log file lines is the same as the format for the
+    <a href="index.html.page=docs.daemon#stdout">"stdout" response</a>, except that the  
+     initial <span class="ic">stdout &lt;process_name&gt;</span> is not included.</div>
+  </li>
+  <li><b>env (hash)</b>
+    <div class="content">If supplied, set environment variable key/value pairs according
+    to the hash.  Example: <span class="ic">env => {DISPLAY=":0.0",
+    LD_LIBRARY_PATH="/lib"}</span>.  Each environment variable value can
+    be a template that includes the following patterns:</div>
+
+      <ul>
+        <li><b>%c</b>: replaced at process run time by the client
+        setting for that environment variable.  for instance, if
+        client A sends the command <span class="ic">set client
+        {DISPLAY=":13.0"}</span>, and the process configuration
+        includes <span class="ic">env => {DISPLAY => "%c"}</span>,
+        then if client A runs the process, it will use the DISPLAY
+        setting of ":13.0".</li>
+      </ul>
+    <br>
+  </li>
+  <li><a name="ready"><b>ready (string)</b></a>
+
+    <div class="content">If supplied, the daemon will monitor whether
+    this process is ready.  After the process is executed, it has
+    <a href="index.html.page=docs.daemon#status">status</a> 'starting' until the ready string is detected as a
+    substring of a stdout line.  In order to be considered a match, some part of the stdout line must
+    be exactly (case-sensitive) equal to the ready string, but the ready string may
+    appear anywhere within the stdout line, not just at the beginning.  When a
+    ready string match is detected, the process status is changed
+    to 'running'.  Any processes that depend on this process will have
+    'pending' status and will not be executed until this process is 'running'.
+    Note that wildcards in the ready string are not supported.</div>
+  </li>
+
+  <li><b>depends (vector of strings)</b>
+    <div class="content">If supplied, declares that this process depends on the listed
+    processes.  When this process is run, it has 'pending' <a href="index.html.page=docs.daemon#status">status</a> and
+    is not executed until all processes it depends on have 'running' status (refer
+    to the 'ready' field above for more information).
+    When the run command is issued for this process, the daemon attempts
+    to start any processes in its depends list that are not already running
+    (these are called "unsatisfied dependencies").  Your config may include
+    chains of dependencies
+    that contain multiple processes and span multiple hosts.  The daemon network will attempt to start
+    the required processes in an order that satisfies all dependencies, or will respond
+    with an error if no such order exists (i.e., if there are loops in the
+    dependency graph).  Note that the dependency mechanism is designed for processes
+    that are persistent (i.e., once executed, they do not exit before the entire
+    dependency graph has time to start up).  Adding
+    a short-lived process to the depends list tends to cause unreliability due to race conditions.
+    Example syntax: <span class="ic">depends => ["a", "b", "c"]</span>.
+  </li>
+  <a name="kill_cmd">
+  <li><b>kill_cmd (string)</b>
+    <div class="content">If supplied, gives the template for an alternate command to use for
+    killing the child process.  The command template can include the
+    following patterns:</div>
+
+    <ul>
+      <li><b>%p</b>: replaced with the child process pid</li>
+    </ul>
+
+    <div class="content">The default kill command is <span
+    class="ic">kill %p</span> (which sends a SIGTERM to the process).
+    The kill command is executed using the system() call.  This means
+    that it uses the working directory and the environment variables
+    from when the daemon was run.  In particular, it does not use the
+    fields <span class="ic">working_dir</span> and <span
+    class="ic">env</span> from the child process configuration.  Also,
+    the daemon blocks waiting for the kill command to complete, so it
+    should be designed to finish quickly.  See also <a
+    href="index.html.page=docs.daemon#backup_kill_cmd">backup_kill_cmd</a>.</div>
+  </li>
+  <a name="backup_kill_cmd">
+  <li><b>backup_kill_cmd (string)</b>
+    <div class="content">If a process is still running <a
+    href="index.html.page=docs.daemon#backup_kill_delay">backup_kill_delay</a> seconds after <a
+    href="index.html.page=docs.daemon#kill_cmd">kill_cmd</a> is issued, the daemon runs
+    backup_kill_cmd.  The default is <span class="ic">"kill -KILL
+    %p"</span> (which sends an uncatchable SIGKILL to the process).
+    You can choose a different value by specifying this parameter, or
+    specify <span class="ic">backup_kill_cmd => ""</span> to simply
+    eliminate the backup kill.
+  </li>
+  <a name="backup_kill_delay">
+  <li><b>backup_kill_delay (double)</b>
+    <div class="content">The number of seconds to wait in between
+    running <a href="index.html.page=docs.daemon#kill_cmd">kill_cmd</a> and
+    <a href="index.html.page=docs.daemon#backup_kill_cmd">backup_kill_cmd</a>.</div>
+  </li>
+  <li><b>host (string)</b>
+    <div class="content">Specifies which host the process should be
+    run on.  If there are multiple daemons running, a <a
+    href="index.html.page=docs.daemon#run">run</a> command for a process with a specified host
+    can be issued to any daemon, and that daemon will try to forward
+    the command to the appropriate daemon.  If no host is specified,
+    the process is run on the daemon to which the <a
+    href="index.html.page=docs.daemon#run">run</a> command was issued.</div>
+  </li>
+  <li><a name="stdin_commands"><b>stdin_commands (vector of strings)</b></a>
+    <div class="content">If supplied, gives a list of commands to be automatically issued
+    to the process on stdin after it enters the "running" state.
+    You can still pass further manual commands to stdin from a client
+    after the automatic commands are issued.</div>
+  <li><b>debugger (string)</b>
+    <div class="content">If supplied, run the process under the specified debugger.  See
+    <a href="index.html?docs.config.writeConfig#configDebugger">Running Processes Under a Debugger</a>.</div>
+</ul>
+  </li>
+
+  <a name="stdin">
+  <li><b>signal</b><br>
+
+    <div class="content">Send the specified signal to processes.  Valid signal names
+    are HUP, INT, ILL, ABRT, BUS, SEGV, PIPE, TERM, and KILL.  Refer to the Linux
+    signal(3) man page for more information about signals.
+</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  signal &lt;signame&gt; [-a] [process1] [process2] ...
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  signal INT ctr
+  signal TERM ctr ctpan
+  signal INT -a
+</pre>
+  </li>
+
+  <a name="stdin">
+  <li><b>stdin</b><br>
+
+    <div class="content">Send a line of console input to a process.
+    The specified text is written to process stdin, followed by a CR (\n)
+    character.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  stdin &lt;process&gt; &lt;input&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  stdin ctr "forward 50"
+</pre>
+  </li>
+       
+  <a name="sub">
+  <li><b>sub</b><br>
+
+    <div class="content">Subscribe to messages from the daemon of type
+    &lt;message_type&gt;.  Valid types are <a href="index.html.page=docs.daemon#status">status</a>,
+    <a href="index.html.page=docs.daemon#config">config</a>, <a href="index.html?page=docs.daemon#clock">clock</a>, <a
+    href="index.html.page=docs.daemon#shout">shout</a>, and <a href="index.html?page=docs.daemon#stdout">stdout</a>.</div>
+
+    <div class="content">The <a href="index.html.page=docs.daemon#stdout">stdout</a> message type
+    is special.  It causes
+    the client to subscribe only to the stdout of &lt;process&gt;, optionally
+    playing back old stdout lines from the daemon's buffer.
+    &lt;playback_lines&gt; is the number of lines to play back (fewer
+    may be played back, depending on the size of the buffer and how
+    much output the process has generated).  If the client specifies
+    &lt;last_received_time&gt;, the daemon only plays back lines with
+    a time stamp after that time.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  1. sub &lt;message_type&gt;
+  2. sub stdout &lt;process&gt; [ &lt;playback_lines&gt; &lt;last_received_time&gt; ]
+
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  sub status
+  sub config
+  sub clock
+  sub shout
+  sub stdout ctr
+  sub stdout ctr 50
+  sub stdout ctr 50 1047247438.775163
+</pre>
+  </li>
+
+  <a name="unsub">
+  <li><b>unsub</b><br>
+
+    <div class="content"> Unsubscribe from &lt;message_type&gt;.  Valid
+    types are listed in the description of the <a href="index.html.page=docs.daemon#sub">sub</a> command.</div>
+
+    <div class="content">The stdout message type is special.  You
+    unsubscribe to process stdout streams individually by specifying
+    the process name.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  1. unsub &lt;message_type&gt;
+  2. unsub stdout &lt;process&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  unsub status
+  unsub config
+  unsub stdout ctr
+</pre>
+  </li>
+</ul>
+
+<a name="responses">
+<h4>Daemon Responses</h4>
+<div class="content">
+<a href="index.html.page=docs.daemon#clock">clock</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#config">config</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#help">help</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#response">response</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#shout">shout</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#status">status</a>&nbsp;&nbsp;
+<a href="index.html.page=docs.daemon#stdout">stdout</a>
+</div>
+
+<ul>
+  <a name="clock">
+  <li><b>clock</b><br>
+
+    <div class="content">Clock messages are sent periodically
+    (currently, every 60 seconds) to clients that have subscribed to
+    them using the <a href="index.html.page=docs.daemon#get"><span class="ic">get
+    clock</span></a> command.  They allow the client to correct for
+    clock skew between the client host and daemon host.  See the
+    description of the <a href="index.html.page=docs.daemon#timeStamp">&lt;time_stamp&gt;
+    field</a> of the <a href="index.html.page=docs.daemon#stdout">stdout</a> response for help on
+    generating a human-readable representation of the timestamp.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  clock &lt;time_stamp&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  clock 1045615833.244992
+</pre>
+  </li>
+
+  <a name="config">
+  <li><b>config</b><br>
+
+    <div class="content">config responses are generated by client <a
+    href="index.html.page=docs.daemon#get"><span class="ic">get config</span></a> commands. The
+    second form of the config response includes the whole config file
+    in one response.  This is generated when the client sends <span
+    class="ic">get config -a</span>. More recently, config responses
+    are also automatically sent to new clients in order to ensure that
+    all modules have the same config.</div>
+
+    <div class="content">The "prior" string that optionally appears
+    after version 2 of the syntax indicates that the response is from
+    a module that connected before the client connected.  If "prior"
+    is present, any conflicts between same-name processes in the
+    stored configuration and the incoming configuration should be
+    resolved in favor of the (more recently loaded) stored
+    configuration.  Otherwise they should be resolved in favor of the
+    incoming configuration.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  1. config &lt;process&gt; &lt;process_config&gt;
+  2. config &lt;entire_config_file&gt; [prior]
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  config ctr {cmd=./counter,env={DISPLAY=":0.0"}}
+  config {groups={normal="ctr ctpan"},
+          processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+  config {groups={normal="ctr ctpan"},
+          processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+         prior
+</pre>
+
+    <div class="content">For &lt;process_config&gt; fields, see the <a
+    href="index.html.page=docs.daemon#processConfig">process config</a> portion of the <a
+    href="index.html.page=docs.daemon#set">set config</a> command documentation.</div>
+
+  </li>
+
+  <a name="help">
+  <li><b>help</b><br>
+
+    <div class="content">help responses are generated by client help commands.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  help &lt;help_string&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  help %This is the help.
+</pre><br>
+  </li>
+
+  <a name="response">
+  <li><b>response</b><br>
+
+    <div class="content"> Each command generates a response, which is
+    either "ok" or a warning or error with an associated text message.
+    The response is sent only to the client that sent the command, but
+    if any processes change state as a result of the command, the
+    resulting status messages are sent to all clients (for example,
+    the <a href="index.html.page=docs.daemon#run">run</a> and
+    <a href="index.html.page=docs.daemon#kill">kill</a> commands usually cause status changes,
+    but the <a href="index.html.page=docs.daemon#get">get</a> command
+    does not).</div>
+
+    <div class="content"><b>Special note:</b> You may tag any command with
+    a numeric prefix, as in <span class="ic">"553 run ctr"</span>. When you
+    do so, the response will be tagged with the same number, as in <span
+    class="ic">"response 553 ok"</span>. Scripted clients can use
+    numeric tags to get confirmation that specific commands completed.
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  response [id] ok
+  response [id] &lt;error|warning&gt; &lt;text&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  response ok
+  response 790 ok
+  response error "unknown command x"
+  response 901 error "unknown command x"
+  response warning "your shoes are untied"
+</pre>
+  <br>
+  </li>
+
+  <a name="shout">
+  <li><b>shout</b><br>
+
+    <div class="content">When any client issues the <a href="index.html.page=docs.daemon#dshout">dshout</a>
+    command, the daemon forwards the message as a "shout" response to all
+    clients that are subscribed using <span class="ic">"<a href="index.html.page=docs.daemon#sub">sub shout</a>"</span>.
+    This can be used to support
+    simple chat functionality between clients.</div>
+
+   <div class="content">syntax:</div>
+<pre class="indent">
+  shout &lt;sending_client&gt; &lt;sending_user&gt; &lt;text&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  shout c_monk_9918 trey &quot;polo!&quot;
+</pre>
+  <br>
+  </li>
+       
+  <a name="status">
+  <li><b>status</b><br>
+
+    <div class="content"> Whenever the status of a process changes
+    (e.g., it is run or killed), a status message is sent to all
+    processes.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  status &lt;status_hash&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  status {name=ctr,status=running,pid=9709}
+  status {name=ctpan,status=signal_exit,terminating_signal=9}
+</pre>
+     <div class="content"><b>&lt;status_hash&gt; fields:</b></div>
+     <ul>
+       <li><b>name (string)</b>
+         <div class="content">The name of the process</div>
+       </li>
+       <li><b>status (string)</b>
+         <div class="content">The status of the process.  Could be any one of the
+         following:</div>
+           <ul>
+             <li><b>not_started:</b>   hasn't been started yet</li>
+             <li><b>pending:</b>       will be run as soon as its dependencies are satisfied</li>
+             <li><b>starting:</b>      command executed but <a href="index.html.page=docs.daemon#ready">ready</a> string not detected yet</li>
+             <li><b>running:</b>       running normally, startup complete</li>
+             <li><b>clean_exit:</b>    ended cleanly, like <span class="ic">exit(0)</span> or
+                                       <span class="ic">main() { return 0; }</span></li>
+             <li><b>error_exit:</b>    ended on an error, like <span class="ic">exit(1)</span>
+                                       or <span class="ic">main() { return 1; }</span></li>
+             <li><b>signal_exit:</b>   killed by an uncaught signal (as happens when a client sends a <a href="index.html.page=docs.daemon#kill">kill</a> command)</li>
+           </ul>
+           <br>
+       </li>
+       <li><b>pid (long)</b>
+         <div class="content">The pid of the process.  Only present if status is starting or running.</div>
+       </li>
+       <a name="last_stdout_time">
+       <li><b>last_stdout_time (long)</b>
+         <div class="content">The last time that data was received from the process on stdout.
+         Only present if status is starting or running.</div>
+
+         <div class="content">This could be useful to determine when a process is
+         hanging.  Since new data on stdout doesn't trigger a status
+         update to the client, clients interested in using this field
+         should send periodic <span class="ic">get -a</span> commands
+         to refresh their value.  The time is represented as an
+         integer number of seconds since the epoch, as would be
+         returned by <span class="ic">time(2)</span>.  See the
+         description of the <a href="index.html.page=docs.daemon#timeStamp">&lt;time_stamp&gt;
+         field</a> of the <a href="index.html.page=docs.daemon#stdout">stdout</a> response for
+         help on generating a human-readable representation.
+       </li>
+       <li><b>exit_value (long)</b>
+         <div class="content">The exit value of the process.  Only present if <span
+         class="ic">status = error_exit</span>.</div>
+       </li>
+       <li><b>exit_time (long)</b>
+         <div class="content">The time when the process exited.  Same
+         representation as <a
+         href="index.html.page=docs.daemon#last_stdout_time">last_stdout_time</a>.  Only present
+         if status has one of the *_exit values.</div>
+       </li>
+       <li><b>terminating_signal (long)</b>
+         <div class="content">The number of the signal that killed the process.  Only present
+         if <span class="ic">status = signal_exit</span>.</div>
+       </li>
+     </ul>
+  </li>
+
+  <a name="stdout">
+  <li><b>stdout</b><br>
+
+    <div class="content">Whenever a process generates output on stdout,
+    a stdout message is sent to clients that have subscribed to the
+    stdout of that process.</div>
+
+    <div class="content">syntax:</div>
+<pre class="indent">
+  stdout &lt;process&gt; &lt;time_stamp&gt; &lt;line_type&gt; &lt;text&gt;
+</pre>
+    <div class="content">examples:</div>
+<pre class="indent">
+  stdout ctr   1045615833.244992 x %moved forward 50
+  stdout ctpan 1045615834.744992 c %this is an extra long line, too
+  stdout ctpan 1045615834.744992 x % long for the line buffer
+</pre>
+    <a name="timeStamp">
+    <div class="content"><b>&lt;time_stamp&gt;</b></div>
+
+    <div class="indent">
+
+    <div class="content">The time stamp is the result of a <span
+    class="ic">gettimeofday()</span> call, converted from a timeval to
+    a double.  Ways to generate a human-readable form of the time
+    stamp include:</div>
+
+    <div class="content">In a C program (see also the strftime(3) man page):</div>
+<pre class="indent">
+  #include &lt;time.h&gt;
+  time_t n = timestamp_integer_part;
+  char *human_readable = ctime(&n);
+</pre>
+    <div class="content">Perl one-liner, supply the time stamp as the
+    argument, as in this examle:</div>
+<pre class="indent">
+  perl -e '$x = localtime($ARGV[0]); print "$x\n";' 1045615833.244992
+</pre>
+    </div>
+
+    <div class="content"><b>&lt;line_type&gt;</b></div>
+
+    <div class="indent">
+
+    <div class="content">This is a single character indicating what kind
+    of line this is.  Possible values are:</div>
+
+    <ul>
+      <li><b>x:</b> The line was broken by an LF (\n) or CRLF pair (\r\n).
+       This is the normal case.</li>
+
+      <li><b>c:</b> The line was too long for a single line in the
+      buffer (currently 80 chars).  The client may stitch long lines
+      back together, or print the line with an ellipsis at the end.</li>
+
+      <li><b>r:</b> The line was broken with a CR (\r). If possible,
+      the client should move the cursor back to the beginning of the
+      line so that subsequent lines overwrite it.  This supports
+      processes that use \r to print spinners, indicating that the
+      process is still working without filling up the terminal.</li>
+    </ul>
+    </div>
+
+    <div class="content"><b>&lt;text&gt;</b></div>
+
+    <div class="indent">
+    <div class="content"> This is a string that has been escaped by
+    prefacing it with a '%' character rather than the usual RCL
+    quoting mechanism (which is to surround the string with quotes and
+    replace special characters with escape codes like \n or \007).
+    The entire line after the '%' character is interpreted by RCL as a
+    single string, regardless of spaces or other reserved RCL
+    characters.  The reason for this is that the same line sent to the
+    client is also sent to the log file, and this escape syntax should
+    be easier for most log analysis scripts to deal with.</div>
+    </div>
+  </li>
+
+</ul>
+
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: November 16, 2006 at 14:13:06.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

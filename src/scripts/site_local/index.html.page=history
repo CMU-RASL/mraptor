@@ -1,0 +1,189 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title></title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+                        </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="A brief account of the motivation
+for and development of Microraptor.">
+<h2>History</h2>
+
+<p class="content">Microraptor is a remote process management system.
+You run the Microraptor daemon on a remote host, then connect to it
+with a local client.  Using the client, you can command the daemon to
+run and kill processes, and communicate with each process's
+stdin/stdout.</p>
+
+<p class="content">Microraptor is a replacement for the Startup tool,
+developed over several years at CMU.  Startup is similarly used for
+process management.  Startup reads a config file with details about
+each process, such as the command to run to start it, the host it
+should run on, environment variable settings, etc.  It uses this
+information to spawn one xterm window per process, and in each xterm,
+a shell command is used to execute the process, either locally by
+simple execution, or remotely via ssh.  Startup also has limited
+support for killing processes, using the shell to invoke killall.</p>
+
+<p class="content">The key flaw in the design of Startup is that the
+xterms and the processes running within them maintain no connection to
+the Startup program itself (Startup exits after spawning them).  This
+leads to several problems:</p>
+
+<ul>
+  <li>Startup cannot detect when its processes exit.</li>
+
+  <li>Startup xterms must be opened at the beginning of the run if the user
+  wants to have access to process stdin/stdout.  They cannot be closed
+  without killing the attached process.</li>
+ 
+  <li>Startup doesn't know the pids of its processes, so it cannot kill them
+  directly.  Instead, it uses the killall command provided by Linux, which
+  has sometimes been unreliable.</li>
+
+  <li>Startup has no way of managing the bandwidth between remote processes
+  and the local host, since each process sends its output over a
+  separate ssh connection.  Users will typically want to monitor only
+  a few processes at a time, and different processes may be of interest
+  at different times in the run.  When working over a low-bandwidth
+  link, it is important to send only the data of interest.</li>
+
+  <li>There is no way for multiple users on different machines to access
+  the data from the same remote process.</li>
+</ul>
+
+<p class="content">Microraptor is designed to overcome all of these
+problems.  The Microraptor GUI client (claw) can attach and detach
+xterm-like windows from the stdin/stdout of processes managed by the
+daemon.  Multiple clients can connect to the same daemon.  In short,
+the great power and flexibility of Microraptor makes the writer of
+Startup look like a real chump.  Read on to learn more about using
+this wonderful system.</p>
+
+<p class="content">Microraptor's first trial by fire was with the <a
+href="http://palantir.swarthmore.edu/GRACE/">Grace project</a> during
+the 2003 IJCAI/AAAI, held in Acapulco, Mexico.  While the entire
+conference was fraught with disaster after disaster for the Grace
+team, Microraptor did a creditable job, although it was very clearly
+alpha software.</p>
+
+<p class="content">While Grace helped us iron out many of the
+Microraptor bugs, <a href="http://www.roboceptionist.com">Valerie</a>
+proved to be the real challenge.  Val is a Roboceptionist at CMU's
+Computer Science Department / Robotics Institute, and as such keeps
+normal business hours.  Year round.  Needless to say, this constant
+use turned up a few tricky ones, including the infamous (at least to
+us) "defunct bug", which has since been fixed.  Courtesy Val and the
+<a href="http://www.frc.ri.cmu.edu/atacama/">Life in the Atacama</a>
+project, Microraptor has now been quite stable for some time.  There
+are always bugs left in any software, but at least none have bit us
+for a few months. :-)</a>
+
+<p class="content">About the name Microraptor: recently (2003) a new
+dinosaur species was discovered in China.  The new species has
+feathers on all four limbs, suggesting it could glide between trees
+like a flying squirrel.  This find is a key point in a long-standing
+debate about how flight evolved in dinosaurs.  The species was named
+Microraptor gui, in honor of Chinese paleontologist Gu Zhiwei.  The
+rest is history.</p>
+
+<p class="content">One note about referring to Microraptor: the name
+was initially <i>MicroRAPTOR</i>, due to Trey's godawful <i>Micro
+Remote Activator Process To Obliterate Rover</i> acronym.  These days,
+the developers just refer to it as <i>Microraptor</i> (<b>not</b>
+<i>MicroRaptor</i>), but more commonly use the <i>mraptor</i>
+shorthand.  Right, so don't call it <i>MicroRAPTOR</i> or
+<i>MicroRaptor</i>, 'cause it bugs Brennan for some reason.</p>
+
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:21:49.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

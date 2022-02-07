@@ -1,0 +1,431 @@
+---------------------------------------------------
+
+DONE SINCE LAST COMMIT:
+
+---------------------------------------------------
+
+DONE SINCE LAST RELEASE:
+
+  Fixed sysv init script errors.
+
+  Made config window default wider (800 pixels).
+
+  Fixed one echo of client shout per daemon bug.
+
+  Make filter entry widget expand when it has focus, and vice-versa
+
+  Claw preferences are auto-saved on exit to the last loaded file, or
+  the default (~/.claw.prefs) otherwise.
+
+  Preferences load/save dialog is filled with .claw.prefs if no
+  existing prefs file is loaded.
+ 
+---------------------------------------------------
+
+TESTING TO DO:
+
+  If b & c depend on a, and a dies before it prints its ready string,
+  b & c remain pending.  Then, if you subsequently try to run b or c,
+  a dependency cycle error is raised.
+     - filed bug report with Trey
+     - Trey says fixed; confirm
+
+  Why don't daemons pick up new processes if the client loads a new
+  config file?  Is the client not doing something right?
+    - verify this with Grace (with updated / recompiled mraptord);
+      don't see it with DIRA on chute
+    - it's possible this was a client bug, since fixed
+
+  Lots of output brings claw to its knees... streamline it.
+    - check with DIRA if ZVT fixes this
+
+  Test ctrl+shift+tab on systems besides chute (the whole ISO_Left_Tab keysym thing)
+
+ - Test clock skewing
+ - Check if interaction from client A to process #1 is echoed to client
+     B subscribing to process #1
+ - Make sure all run's are doing the right thing
+   w.r.t. parallelization/serialization
+
+ Maximize button problem: I think it's fixed; see if anyone has
+ trouble with it.
+
+---------------------------------------------------
+
+IN PROGRESS (CLAW):
+ 
+  Strange problem with filtering: if we're filtering 'a|b', and 'a'
+  appears on lines without integral newlines, a never matches.
+  However, filtering for just 'a' works.  Huh?
+    - the culprit is targetPose in MM-VSB
+    - actually, newlines don't seem to be at fault -- an endl is
+      output right after targetPose.  Huh?
+
+  Process configs aren't always reset when a loading-config client
+  comes up.  I think it may be related to the daemons not all
+  appearing in the client instantly.  Maybe resend the config whenever
+  a new daemon connects, with some (10-20 second?) timeout?
+
+  Add one line of default text to the chat window explaining its
+  purpose?
+
+---------------------------------------------------
+
+ON HOLD / STATUS UNKNOWN:
+
+> Reloading a config with new group members doesn't update tree appropriately
+
+
+---------------------------------------------------
+
+OUTSTANDING BUGS:
+
+  Make the popup menu from the signal button respond to a single
+  click, instead of two.
+
+  Figure out how the heck to set the background color of a GtkNotebook
+  tab, in order to eliminate that annoying blue tab, and use tab
+  background as the message-signalling mechanism, rather than text color.
+     - Labels don't have backgrounds; maybe try setting color of
+       notebook (http://ometer.com/gtk-colors.html)
+       - taking shotgun approach in interface.c; this hasn't worked,
+         but grep for tab_rc_style to see (commented out) attempts.
+     - The blue tab is part of the theme on bardot -- it doesn't
+       appear on khrushchev.
+
+  Update dshout/shout to eliminate the username field.
+
+  When running a process for the N>1'th time, the zvtterm isn't
+  shrunk, resulting in the first few lines of text being scrolled off
+  the top, even if a screen full of data isn't available.
+
+  client memory leaks:
+    - tooltips in process widget (processWidget.c:405, 48 bytes per)
+    - viewers in process widget (processWidget.c:507, from add_process_display, 12 bytes per)
+    - swallowed windows (support.c:1302 & 1285, 20 bytes per) 
+    - button labels (processWidget.c:434, ~10 bytes per)
+
+  (daemon) One unexplained crash that seems to be coming from an
+  exception thrown inside a catch block, but there's not much
+  information to go on.  FIX: remove code that could throw exceptions
+  from exception handlers.
+
+  Sometime stale data (up to 20' old) in some claws but not others
+
+  Throttle down initial buffer filling on view of a process
+
+  Switching to the overview tab when you haven't filled a screen's worth of
+  text results in a blank terminal (text scrolled off top)
+    - in general, we want the cursor to be anchored to the bottom line
+      of the widget... not sure how to accomplish this...
+    - as soon as a zvtterm gets bigger, it never reduces its
+      scrollsize...
+    - scrollback isn't it   
+
+  Strangeness in client if a daemon goes down and comes back up
+  (groups not filled back in; sometimes cross-daemon dependencies
+  aren't fulfilled)
+
+  killing a group doesn't reset the status of a pending process to
+  not_started, while individually killing the process does.
+
+  Non-initially-shown nodes not initially colorized
+    - I think the fix here is to add a handler to the process tree's
+      node-expanded function.  For some reason, I can't set the color
+      beforehand.  Very odd.
+
+  When switching between views, where one is smaller than the other,
+  and the buffer length is in between the two sizes, if you're
+  scrolled all the way to the bottom in the smaller view, switching to
+  the big view and back unsticks the slider and sets it to somewhere
+  in the middle...
+
+  Cleanup: client/clientIO.c::*_process: no need to loop across
+  processes; can just send a space-separated list.
+
+  Executing 'd' in example.config mixes executing and process
+   status messages...
+    - this is a daemon-side issue; will not fix
+
+---------------------------------------------------
+
+NEW FEATURES : CLAW  
+
+  ---------------
+  REASONABLE
+
+  Possibly add a funky key combo (ctrl-alt-C ?) to send a SIGINT to
+  the current process.
+
+  Add unknown state to each process, and don't print anything to error
+  buffer if it's a state change from unknown
+
+  (May be related to preceding): Periodic get status' generate
+  printouts about stuff that happened in the past / has already been
+  reported.
+
+  Add more nifty error images.
+
+  Make it more visually obvious that focus is in the stdin line (block
+  cursor maybe?)
+
+  Option to clear / reset buffer (add to buttons)
+
+  Parse a geometry string for the window
+
+  Write section in manual :)
+
+  -------------------------------
+  WILL NOT BE IMPLEMENTED
+
+  "Signal all": doesn't seem to be needed.
+
+  Per-user colorization of lines in the chat dialog: there are too few
+  ANSI color escape sequences for this to be useful when many users
+  are present, and it's not really needed with just a few chatters.
+
+  -------------------------------
+  PIE IN THE SKY / WAIT FOR TALON
+
+  Config file to map keyboard shortcuts to commands on given processes
+    - incl view (i.e. "switch to tab")
+    - have to be restricted to alt or shift+alt or ctrl+alt combos
+      (ctrl combos are all used)
+    - is a resource (.rc) file the right way to do this?
+
+  Maybe "dynamic groups" (if you view while having multiple things
+  selected, you get a group view of those things)?
+
+  Maybe split IPC and GTK stuff into separate threads to increase
+  responsiveness?
+
+  Add option to do SSH tunnelling under the hood via some ssh library
+   - fork and set up pipes
+
+  Maybe: change tie-select-to-tab to follow focus in multi-window tabs
+
+  Profile claw under heavy IPC load
+   - use gprof (gcc -pg) to find high-cost code chunks  
+    - where are we getting hammered?
+    - is there a different way we should set up the IPC_listen's?
+
+  Change daemon display (in process tree) to be more compact
+    - see extract_host_from_module_name() in MRComm
+    - check if we're using it directly anywhere...
+
+  Use far-right column of tree widget more intelligently
+   - what data?
+     - "pending foo"
+     - "exited at <time>"
+     - "Idle %d s"
+   - need to cache dependencies locally... 
+      (or just wait 'til pending status gets broadcast)
+   - might be a good idea to cache whole config thingy locally...
+
+  Right-click of a process window w/in a group window doesn't do the
+  right thing (should include "group" and "process" options)
+
+  Tab ordering: processes, groups, swallowed windows
+
+  Groups
+   TODO:
+   - Is there a good way to do "set config" on a group yet?
+   - Think hard about not using the pw in the group row...
+
+  Socket stuff:
+   - add any process displays before socket foo in notebook
+   - subscribe to new window creation messages, to allow auto-swallowing
+     - Hmm.  So we need to get CreateNotify XEvents from the root
+       window.  Or not.  XLib manual says CreateNotify is generated
+       when _children_ are created.  Damn.  Thus, this will only be
+       generated from the root window.  Need some way to subscribe to
+       events from the root.  Really, need a way to get events from
+       another window.  Options:
+       - Use IPC's subscribeFD to get events from the root window
+       - Install GDK filter on XEvents
+       - Connect some sort of GTK signal handler to GDK_ROOT_WINDOW...
+       - Do straight X stuff a la on_swallow_window1_activate
+     - sometimes works, sometimes leaves skeleton window, sometimes
+       just resizes window (timing issue)
+              
+       Occasionaly GDK bad window error that crashes claw; not sure what
+       it's from:
+         Entering FD handler
+         Gdk-ERROR **: BadWindow (invalid Window parameter)
+           serial 12 error_code 3 request_code 20 minor_code 0
+       This seems to happen when you close an arbitrary window soon after
+       it appearing...  Maybe add some sort of "does this window still
+       exist" check?  It's a race condition...
+
+   - detect closing of window & do cleanup
+     - look at XLib stuff, or maybe GDK
+   - save geometry of windows when swallowed, to allow its restoration
+     after regurgitation
+
+  Client-side preferences 
+    - Preferences:
+      x initial mode of tree (groups-centric or process-centric)
+      - local config file path
+      - Add verbosity option
+      - Remember directory we last loaded something from (for config file)
+      - client-side logging
+      - frequency of status ping
+      - list of windows to automatically swallow
+      - list of processes to view on startup
+      x length of history to retreive on subscribe
+      x display of per-daemon skew values
+        - make get status call on change
+      - what other stuff?    
+
+  Add NOOP option & print response to ErrorOutput
+
+  Somehow match up error responses with the appropriate processes...
+
+---------------------------------------------------
+
+NEW FEATURES : MRAPTORD
+
+  Need better semantics for loading a new config file during the run.
+  In particular, there should be a flag that deletes any old processes
+  that are both (a) not running and (b) not mentioned in the new config
+  file.  Also check to make sure groups are handled properly.  This
+  change would minimize the need to restart the whole daemon network when the
+  config file changes.
+    (open. low priority)  
+
+  Add extra information to the 'status' response for pending processes,
+  indicating the dependencies and which dependencies are filled.
+    (open. low priority)
+
+  Remove vestiges of support for running central under mraptord (and
+  corresponding documentation).  This feature was always experimental,
+  and it probably doesn't work, as nobody has tried it for a long time.
+    (open. low priority)
+
+  log internal activities to allow after-the-fact debugging of
+  infrequently observed bugs
+    (on hold. no known rare bugs.)
+
+  implement "debug <event>" command to modify debug level online.  In
+  particular, instrument for defunct bug
+    (on hold. no known rare bugs.)
+
+  Deal with central crashes gracefully
+    (on hold.  good idea, but probably requires substantial changes
+     to the ipc client library before it would work reliably. in the
+     interim, crashing is at least a transparent response.)
+
+  Option to have a process restarted on death
+    (do not implement. brennan wrote a domain-specific manager
+     module that connects to daemons and can restart other processes.
+     dom did the same thing for atacama. there seems to be little need
+     to put this in the daemon itself.)
+
+  Maybe an option for a file that should be sourced before each
+  process is run?
+    (do not implement. see daemon/exampleRunAndFilterScript for a way
+     to fork off a process such that mraptord 'kill' commands still
+     work properly. this could also be used to set environment
+     variables or whatever. a bit hackish, but it's not obvious how to
+     put direct support in the daemon that is any cleaner.)
+
+  Support multiple configurations per process (with a default), and
+  allow switching by the client online?
+    (do not implement.  config files are already very complicated.
+     adding multiple configurations per process would make it worse.
+     hopefully the underlying need can be partially addressed by
+     better supporting loading of new config files on the fly.)
+
+(COMPLETED MRAPTORD FEATURES)
+
+  Add a per-process config variable 'debugger'.  If supplied, run
+  the process under the specified debugger.
+    (implemented)
+
+  Add a per-process config variable 'stdin_commands' specifying commands
+  to send to stdin when the process enters the 'running' state.
+    (implemented)
+
+  Stdin commands and process status changes should be logged along with
+  stdout data in the process log and also forwarded to all subscribed clients
+  (wrapped in specially formatted 'stdout' messages).
+    (implemented)
+
+  Implement a command to send a specified signal to a process
+  (e.g. 'signal INT myprocess')
+    (implemented)
+
+---------------------------------------------------
+
+UI LOOK 'N FEEL
+
+  Make popups over logText respond to a single click, in addition to doubleclicking
+  Change names on all the menus to reflect new key combo terms
+  Progress bar for starting a process?
+    - requires knowledge of dependency tree...
+  Figure out how to add accelerators without menu items
+
+---------------------------------------------------
+
+PROBABLY FIXED BUGS TO WATCH FOR
+
+
+---------------------------------------------------
+
+CODE CLEANUP
+
+  - Change all references to signals1 to control1 (menu name change)
+  - think about keeping a global list of process name -> widget
+    pointer, rather than walking through the tree.  That'd be more
+    efficient; profile to figure out if it's worth it.
+  - use get_all_nodes where appropriate
+  - Switch to using the print_common_buffer with an enum argument
+    - mostly done
+  - Rewrite to use GList's of ProcessData's rather than space-separated
+    lists of things
+  - Run a memory profiler to make sure there aren't any leaks floating
+    around; lots of strdup'ing and such is happening, and I might've
+    missed something.
+    - definitely one in destruction of process tree; custom row data
+      isn't being free'd
+    - Relevant FAQ:
+      5.18 How do I remove the data I have attached to an object?
+
+        When attaching the data to the object, you can use the
+      gtk_object_set_data_full() function. The three first arguments
+      of the function are the same as in gtk_object_set_data(). The
+      fourth one is a pointer to a callback function which is called
+      when the data is destroyed. The data is destroyed when you:
+
+          * destroy the object
+          * replace the data with a new one (with the same key)
+          * replace the data with NULL (with the same key)
+
+  - Split functions up into more appropriate files (processData, etc.)
+
+---------------------------------------------------
+
+TO DO IF REQUESTED
+
+ - Rewrite to allow both IPC and fifo client comm 
+   - commandline fifo vs. IPC option
+ - client-side logging
+ - change print_to_processes to take a list of timestamps
+ - A way to save the current config file (from the daemon?)
+ - Allow removal of individual process displays from a group display
+
+---------------------------------------------------
+
+CAVEATS
+
+ NOTE: timestamps are in client time; this is the only way
+       multiple daemons can print stuff out in a reasonable way.
+ About command set implementation:
+  - ipc: not implemented
+ There are two focus modes for a GtkWindow: nothing focused, and child
+   focused.  This is a bug within GTK, and results in there being a
+   "blank" in the focus chain (i.e. if you're tabbing through the
+   various widgets, at one point in the cycle nothing will be in focus).
+ If we ever allow mutiple processes with the same name to coexist,
+   grep for DUPEDPROCESSFIXME and fix 'em.
+

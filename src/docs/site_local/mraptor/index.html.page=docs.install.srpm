@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+                <tr><td>&nbsp;</td></tr>
+        <tr class="subSubLink">
+          <td class="subSubLinkCell">
+             <center>
+              <a class="subSubLink" href="index.html.page=docs.install">Overview</a>
+<a class="subSubLink" href="http://www.microraptor.org/index.html.page=docs.install.rpm">RPM</a>
+<a class="subSubLink" href="index.html.page=docs.install.srpm">SRPM</a>
+<a class="subSubLink" href="index.html.page=docs.install.source">Source</a>
+
+             </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Instructions for installing from a
+source RPM (i.e. SRPM).">
+<h2>Source RPM instructions</h2>
+
+<p>If there isn't a binary RPM available on the <a
+href="index.html.page=download">downloads page</a> that will do the
+trick for your system, you'll need to build one from the source RPM
+(available from <a href="index.html.page=download">there</a> as well).
+Here are some barebones instructions on building Microraptor from the SRPM:
+
+<ol>
+   <li class="spaced">Ensure that the IPC headers and libraries can be found by the
+    build process. Either install the <a
+    href="index.html.page=download#ipc">IPC RPM</a> or symlink
+    /usr/lib/libipc.a to your existing IPC library and
+    /usr/include/ipc to the /include subdirectory of your IPC
+    installation. </li>
+   <li class="spaced"><pre>rpm --rebuild mraptor-1.0.1-1.src.rpm</pre>
+   as root (substituting the appropriate version number).  Note that
+   on some newer RedHat systems it's <i>rpmbuild --rebuild</i> instead
+   of <i>rpm --rebuild</i>.
+    </li>
+
+   <li class="spaced">This will drop a set of binary RPMs
+   (<i>mraptor-[server|claw|mrterm|util|dev</i>) in
+   /usr/src/redhat/RPMS/i386/. Install them the usual way:
+   <pre>rpm -ivh &lt;rpmname&gt;</pre> See <a
+   href="http://www.microraptor.org/index.html.page=docs.install.rpm">the RPM installation
+   page</a> for more verbose RPM instructions.
+   </li>
+
+   <li>Drop us an email with a brief description of your system (Linux
+   flavor, flavor's version number, and compiler at a bare minimum:
+   e.g. "stock RedHat Enterprise 3.0, gcc 3.2.3"), what problems you
+   had with the RPMs above, and a pointer to where I can get your RPM.
+   Thanks!</li>
+</ol>
+</p>
+
+<p> Your spiffy new binary RPMs can then be used to install Microraptor on
+any other similar machines you have.</p>
+
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:23:59.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

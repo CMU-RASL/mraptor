@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="./mraptor_favicon.png">
+<link rel="icon" type="image/png" href="./mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="./images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="./index.html?page=home">Home</a>
+            <a class="mainLink" href="./index.html?page=download">Download</a>
+            <a class="mainLink" href="./index.html?page=docs">Docs</a>
+            <a class="mainLink" href="./index.html?page=stories">Stories</a>
+            <a class="mainLink" href="./index.html?page=related">Related</a>
+            <a class="mainLink" href="./index.html?page=history">History</a>
+            <a class="mainLink" href="./index.html?page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <?php
+              if(isset($_GET["page"]) && strlen($_GET["page"]) > 0) {
+                $chunks = explode(".", $_GET["page"]);
+                $linkFile = "./" . $chunks[0] . ".links.html";
+                if(file_exists($linkFile)) {
+                  include($linkFile);
+                }
+              }
+            ?>
+            </center>
+          </td>
+        </tr>
+        <?php
+          if(isset($_GET["page"]) && strlen($_GET["page"]) > 0) {
+             $chunks = explode(".", $_GET["page"]);
+             $subLinkFile = "./" . $chunks[0] . "." . $chunks[1] . ".links.html";
+             if(count($chunks) > 1 && file_exists($subLinkFile)) {
+                ?>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subSubLink">
+          <td class="subSubLinkCell">
+             <center>
+              <?php
+                include($subLinkFile);
+              ?>
+             </center>
+          </td>
+        </tr>
+        <?php
+             }
+          }
+        ?>
+      </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="./images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <?php 
+      $incFile = "";
+      if(isset($_GET["page"]) && strlen($_GET["page"]) > 0) {
+        $incFile = "./" . $_GET["page"] . ".html";
+        if(file_exists($incFile)) {   
+           include($incFile);
+        } else {
+        ?>
+          <p class="content">Hmm, how odd.  You seem to be lost!  If you
+          arrived here through a link on this site, please inform the
+          webmaster - he mucked something up!  Otherwise, kindly use the
+          navigational bar above to find what you're looking for.</p>
+        <?php
+        }
+      } else {
+        $incFile = "./home.html";
+        include($incFile);
+      }
+      ?>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+  <?php
+  if(strlen($incFile) > 0 && file_exists($incFile)) {
+  ?>
+  <tr>
+    <td class="content" colspan="2">
+      <hr>
+      Last modified: <?php print date ("F d, Y \a\\t H:i:s.", filemtime($incFile)); ?>
+    </td>
+  </tr>
+  <?php } ?>
+</table>
+
+</body> </html>

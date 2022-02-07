@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+$collected = "";
+while (<>) {
+    ($ts, $type, $line) = split(/\s+/, $_, 3);
+    $line =~ s/^%//;
+    chop $line;
+    if ($type eq 'c') {
+	$collected .= $line;
+    } else {
+	print "$collected$line\n";
+	$collected = "";
+    }
+}

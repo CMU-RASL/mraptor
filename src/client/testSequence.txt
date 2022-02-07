@@ -1,0 +1,24 @@
+Shft+Ctrl+I
+Ctrl+G
+Ctrl+P
+Ctrl+Z
+Save prefs
+Load prefs
+Ctrl+S
+Shft+Ctrl+S
+Ctrl+M
+Ctrl+N  unsubscribe
+Ctrl+L
+Ctrl+Y
+Shft+Ctrl+Y
+Ctrl+R
+Ctrl+Shft+R
+Ctrl+T
+Alt+M
+Ctrl+Shft+T
+next tab
+next tab
+prev tab
+Ctrl+O
+Shft+Ctrl+M
+Ctrl+Q

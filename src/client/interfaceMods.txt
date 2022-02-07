@@ -1,0 +1,24 @@
+  gtk_signal_connect (GTK_OBJECT (view_selected1), "activate",
+                      GTK_SIGNAL_FUNC (on_view_selected1_activate),
+                      NULL);
+  gtk_signal_connect (GTK_OBJECT (hide_selected1), "activate",
+                      GTK_SIGNAL_FUNC (on_hide_selected1_activate),
+                      NULL);
+
+  =>
+
+  gtk_signal_connect (GTK_OBJECT (view_selected1), "activate",
+                      GTK_SIGNAL_FUNC (on_view_selected1_activate),
+                      ProcessTree);
+  gtk_signal_connect (GTK_OBJECT (hide_selected1), "activate",
+                      GTK_SIGNAL_FUNC (on_hide_selected1_activate),
+                      ProcessTree);
+
+*******************************
+  gtk_container_add (GTK_CONTAINER (proccessTableScrolledWindow), ProcessTable);
+
+  =>
+
+  gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(proccessTableScrolledWindow), ProcessTable);
+
+*******************************

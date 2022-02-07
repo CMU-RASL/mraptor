@@ -1,0 +1,132 @@
+# $Id: README.rcl_wrapper,v 1.3 2004/07/06 17:07:01 trey Exp $
+
+NON-C++ LANGUAGE BINDINGS FOR THE RCL API
+Trey Smith, July 2004
+-----------------------------------------
+
+This document describes early development on some additional language
+bindings for the RCL API, specifically Java and Python.
+
+DEVELOPMENT STRATEGY
+--------------------
+
+(1) Make a simplified C++ API that provides minimal access to the basic
+    RCL datatype rcl::exp.  This API does not use advanced C++, and
+    relies on primitive types that are easy to interconvert between
+    languages.  (In contrast to the normal API, which uses many advanced
+    C++ features.)
+
+(2) Use the SWIG tool to generate wrappers that export the simplified
+    API to the target languages.  More details about SWIG are available
+    at http://www.swig.org/.
+
+(3) In each target language, provide additional functions that use the
+    simplified API to convert back and forth between a language-specific
+    data structure and an rcl::exp.  This language-specific data
+    structure can then be manipulated using whatever features are
+    available in the target language.
+
+USING THE JAVA BINDING
+----------------------
+
+(1) Installation.
+
+    - 'cvs update -d' in src/microraptor
+
+    - Install SWIG 1.3.  It's already installed on monk.  The Fedora
+      Core 2 SWIG RPM can be found in monk.frc.ri.cmu.edu:/root.  It
+      works fine under RedHat 9.
+
+    - Install the Java SDK.  Already installed on monk.  Tested under
+      the v1.4.2 SDK downloaded from Sun.
+
+(2) Configure environment.  Run the following:
+
+      export CLASSPATH="$CHECKOUT_DIR/lib/linux2:."
+      export LD_LIBRARY_PATH="$CLASSPATH"
+
+(3) Compilation.  Run the following:
+
+      cd $CHECKOUT_DIR/src/microraptor
+      make install
+      cd $CHECKOUT_DIR/src/microraptor/rcl/wrapper
+      make java
+
+    These steps should produce
+
+      $(CHECKOUT_DIR)/src/microraptor/rcl/wrapper/TestRCL.class
+         Java bytecode of the test program
+      $(CHECKOUT_DIR)/lib/linux2/librcl_java.so
+         A shared library that is dynamically loaded by Java when
+         using the RCL parser.
+      $(CHECKOUT_DIR)/lib/linux2/rcl_java/*.class
+         The compiled Java-language elements of the RCL binding.
+
+(4) Demo the binding.  Run the following:
+
+      java TestRCL
+
+    You can look at the source for the demo in
+
+      $CHECKOUT_DIR/src/microraptor/wrapper/TestRCL.java
+
+    The demo does the following:
+
+    (A) Parses a string of RCL, returning an rcl_java.Exp object named
+        rcl_in.
+
+    (B) Converts rcl_in back into a string and prints it.
+    
+    (C) Traverses rcl_in (in the read_exp() function), generating a
+        java.lang.Object named java_expr.  java_expr reproduces the
+        structure of rcl_in, and it can be edited from within Java.
+        See below for how the types used in the C++ API are mapped
+        to Java types in java_expr.
+
+    (D) Traverses java_expr (in the write_exp() function), reconstructing
+        a new rcl_java.Exp named rcl_out.
+
+    (E) Converts rcl_out into a string and prints it (note that rcl_in
+        and rcl_out are equivalent, except for possible reordering of
+        fields inside maps).
+
+
+USING THE PYTHON BINDING
+------------------------
+
+Not documented yet.
+
+
+DATA STRUCTURE TYPE MAPPING
+---------------------------
+
+getType()      C++                 Java                     Python
+------------------------------------------------------------------
+"map"          rcl::map            java.util.HashMap        dict
+"vector"       rcl::vector         java.util.Vector         list
+"double"       double              java.lang.Double         float
+"long"         long                java.lang.Long           int
+"bool"         bool                java.lang.Boolean        int
+"string"       std::string         java.lang.String         str
+
+
+KNOWN BUGS
+----------
+
+When parsing a very large number of files under Java, the memory
+footprint of the JVM slowly increases.  It's not clear whether this is
+the fault of the rcl_java module.  This problem is not seen under
+Python.
+
+######################################################################
+# $Log: README.rcl_wrapper,v $
+# Revision 1.3  2004/07/06 17:07:01  trey
+# updated known bugs
+#
+# Revision 1.2  2004/07/01 21:20:15  trey
+# added to type map
+#
+# Revision 1.1  2004/07/01 20:51:22  trey
+# initial check-in
+#
+#

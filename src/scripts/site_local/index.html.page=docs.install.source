@@ -1,0 +1,307 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title></title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+                <tr><td>&nbsp;</td></tr>
+        <tr class="subSubLink">
+          <td class="subSubLinkCell">
+             <center>
+              <a class="subSubLink" href="index.html.page=docs.install">Overview</a>
+<a class="subSubLink" href="http://gs295.sp.cs.cmu.edu/brennan/mraptor/index.html.page=docs.install.rpm">RPM</a>
+<a class="subSubLink" href="index.html.page=docs.install.srpm">SRPM</a>
+<a class="subSubLink" href="index.html.page=docs.install.source">Source</a>
+
+             </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Build instructions for compiling
+Microraptor from the source.">
+<h2> Use the Source, Luke! </h2>
+
+<p>While we heartily recommend installing from an RPM, sometimes you
+just need to Use The Source(tm). ;-)  One warning: Microraptor currently lives in
+the <a href="http://www.frc.ri.cmu.edu/atacama/">Life in the
+Atacama</a> CVS repository, and while we've managed to make its build
+process independent of the main LITA build, the directory structure is
+still somewhat screwy.</p>
+
+<h4>System requirements</h4>
+
+<p>Microraptor has currently only been used under Linux.  It has been
+tested successfully with a variety of tool versions, but unfortunately
+we don't have a comprehensive list.  Here are several configurations of
+tools that are known to work:</p>
+
+<ul>
+  <li>RedHat Linux 7.1 with CMU CS Facilities modifications, kernel 2.4.18</li>
+  <li>g++ 2.96 and 3.2.3</li>
+  <li>GNU Bison version 1.28</li>
+  <li>GNU Flex version 2.5.4</li>
+  <li>GNU Make version 3.79.1</li>
+  <li>GTK 1.2.9 and 1.2.10 (needed for graphical client only)</li>
+  <li>CMU IPC 3.7.4 through 3.7.10: (<a href="http://www.cs.cmu.edu/~ipc">IPC</a> is
+  a locally developed inter-process communications library; any
+  version newer than 3.7.4 should work)</li>
+</ul>
+
+<p>The majority of claw (the GUI) development was done using:</p>
+
+<ul>
+  <li>Debian Testing (Woody), kernel 2.4.18</li>
+  <li>g++ 2.95.4</li>
+  <li>GNU Bison version 1.75</li>
+  <li>GNU Flex version 2.5.4</li>
+  <li>GNU Make 3.79.1</li>
+  <li>CMU IPC 3.7.4</li>
+</ul>
+
+  <p>and, more recently...</p>
+
+<ul>
+  <li>Debian Testing (Sarge), kernel 2.4.18</li>
+  <li>g++ 2.95.4</li>
+  <li>GNU Bison version 1.875a</li>
+  <li>GNU Flex version 2.5.4</li>
+  <li>GNU Make 3.80</li>
+  <li>CMU IPC 3.7.4</li>
+</ul>
+
+  <p>We've also used newer systems, such as:</p>
+
+<ul>
+  <li>RedHat Linux 9.0 with CMU CS Facilities modifications, kernel
+  2.4.25</li>
+  <li>g++ 3.2.2</li>
+  <li>GNU Bison version 1.35</li>
+  <li>GNU Flex version 2.5.4</li>
+  <li>GNU Make version 3.79.1</li>
+  <li>GTK 1.2.10 (needed for graphical client only)</li>
+  <li>CMU IPC 3.7.7</li>
+</ul>
+
+  <p>and...</p>
+
+<ul>
+  <li>Fedora Core 3 with CMU CS Facilities modifications, kernel
+  2.6.13</li>
+  <li>g++ 3.4.2</li>
+  <li>GNU Bison version 1.875c</li>
+  <li>GNU Flex version 2.5.4</li>
+  <li>GNU Make version 3.80</li>
+  <li>GTK 1.2.10 (needed for graphical client only)</li>
+  <li>CMU IPC 3.7.10</li>
+</ul>
+
+
+<p>We explicitly DO NOT support compilers with versions less than gcc
+2.95.4.  We've run into the following problems:
+    <ul>
+      <li>egcs 2.91 does not provide enough template support for some of our
+        support classes.</li>
+      <li>gcc 2.95.3 has a bug in the std::string constructor from a char*
+        that crashes spawned child processes.</li>
+    </ul>
+</p>
+
+<p><i><b>NOTE:</b> As of 1.1.3-1, the problems related to gcc 3.4 have
+been resolved. This note will remain for a time to inform anyone using
+a pre-1.1.3 release.</i> Unfortunately, we've now also run into
+problems with gcc 3.4, especially with its "support" of templates.
+The gcc folk seem to be focusing on standards-compliance at any cost,
+including breaking backwards-compliance.  We will eventually rewrite
+the offending library to be strictly ANSI-compliant, but that'll be
+rather thorny, as the code is... arcane.  In the meantime, stick to
+gcc 3.2 (or possibly 3.3).  There are reports of 'gcc-compat' RPMs
+being available for recent Fedore Core releases that seem to do the
+trick.</p>
+
+<p>We believe mraptor to now work properly under gcc 4.0, but no gcc 4
+system is part of our release process, so I'm not positive. Please
+report any success or failure.</p>
+
+<h4>Setup and Compilation</h4>
+
+<p>The Microraptor source tree expects to be installed under a software/
+directory.  You must create an external/ directory in software/ which
+includes the IPC installation (potentially via symlinks to a
+previously-installed copy):</p>
+
+<ul>
+
+  <li>Choose a directory for your installation and do the following:
+      <ul class="spaced">
+        <li><span class="ic">setenv ATACAMA_MEMBERS_DIR &lt;your_dir&gt;</span></li>
+        <li><span class="ic">mkdir $ATACAMA_MEMBERS_DIR/software</span></li>
+      </ul>
+  </li>
+
+  <li>Set up the external directory under software to include the IPC
+  installation (the requirement is that the following files be present):
+      <ul class="spaced">
+        <li>software/external/lib/linux2/libipc.a</li>
+        <li>software/external/bin/linux2/central</li>
+        <li>software/external/include/ipc.h</li>
+      </ul>
+  </li>
+
+<li>Install the Microraptor source.  Pick one: grabbing it from CVS
+  (obviously requires CVS access; we do not support anonymous CVS
+  access) or downloading the source tarball from <a
+  href="index.html.page=download">here</a>.
+      <ul class="spaced">
+        <li><b>CVS:</b>
+          <ul>
+            <li><span class="ic">cd $ATACAMA_MEMBERS_DIR/software</span></li>
+            <li><span class="ic">setenv CVSROOT monk.frc.ri.cmu.edu:/user/atacama/software/master</span></li>
+            <li><span class="ic">cvs checkout src/microraptor</span></li>
+            <li><span class="ic">cvs checkout src/microraptor/atacama_env</span></li>
+          </ul>
+        </li>
+        <li><b>Tarball:</b>
+          <ul>
+            <li>Download tarball from <a href="index.html.page=download">here</a></li>
+            <li><span class="ic">cd $ATACAMA_MEMBERS_DIR/software</span></li>
+            <li><span class="ic">tar -xzf mraptor-&lt;version&gt;.tgz</span></li>
+          </ul>
+        </li>
+      </ul>
+  </li>
+
+  <li>Pick up environment variables from atacama_env:
+      <ul class="spaced">
+        <li><span class="ic">source $ATACAMA_MEMBERS_DIR/software/src/atacama_env</span></li>
+      </ul>
+  </li>
+
+  <li>Compile:<br>
+
+        <p>If you don't want the binaries installed to
+          $ATACAMA_MEMBERS_DIR/software/bin/<architecture>, set the
+            RELEASE_HOME environment variable to your target directory
+            before doing the following:
+
+            <ul>
+              <li><span class="ic">cd $ATACAMA_MEMBERS_DIR/software/src/microraptor</span></li>
+              <li><span class="ic">gmake RELEASE=1 install</span></li>
+            </ul>
+            <p>This produces the following files, which should be in your path
+              if you rehash; note that compiling with RELEASE=1 removes -g
+              and adds -O3, resulting in much longer compile times but much
+              faster executables (the GUI (claw) especially benefits
+              from this):
+              <ul>
+                <li>software/bin/linux2/mraptord</li>
+                <li>software/bin/linux2/mrterm</li>
+                <li>software/bin/linux2/claw</li>
+              </ul>
+            </p>
+        </p>
+  </li>
+  <li>Configure: That's it!  Move on to the <a
+  href="index.html.page=docs.config">configuration</a> page for
+  instructions on getting your processes running under Microraptor.</li>
+</ul>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:24:28.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

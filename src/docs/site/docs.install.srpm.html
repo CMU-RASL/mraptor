@@ -1,0 +1,42 @@
+<meta name="description" content="Instructions for installing from a
+source RPM (i.e. SRPM).">
+<h2>Source RPM instructions</h2>
+
+<p>If there isn't a binary RPM available on the <a
+href="./index.html?page=download">downloads page</a> that will do the
+trick for your system, you'll need to build one from the source RPM
+(available from <a href="./index.html?page=download">there</a> as well).
+Here are some barebones instructions on building Microraptor from the SRPM:
+
+<ol>
+   <li class="spaced">Ensure that the IPC headers and libraries can be found by the
+    build process. Either install the <a
+    href="./index.html?page=download#ipc">IPC RPM</a> or symlink
+    /usr/lib/libipc.a to your existing IPC library and
+    /usr/include/ipc to the /include subdirectory of your IPC
+    installation. </li>
+   <li class="spaced"><pre>rpm --rebuild mraptor-1.0.1-1.src.rpm</pre>
+   as root (substituting the appropriate version number).  Note that
+   on some newer RedHat systems it's <i>rpmbuild --rebuild</i> instead
+   of <i>rpm --rebuild</i>.
+    </li>
+
+   <li class="spaced">This will drop a set of binary RPMs
+   (<i>mraptor-[server|claw|mrterm|util|dev</i>) in
+   /usr/src/redhat/RPMS/i386/. Install them the usual way:
+   <pre>rpm -ivh &lt;rpmname&gt;</pre> See <a
+   href="./index.html?page=docs.install.rpm">the RPM installation
+   page</a> for more verbose RPM instructions.
+   </li>
+
+   <li>Drop us an email with a brief description of your system (Linux
+   flavor, flavor's version number, and compiler at a bare minimum:
+   e.g. "stock RedHat Enterprise 3.0, gcc 3.2.3"), what problems you
+   had with the RPMs above, and a pointer to where I can get your RPM.
+   Thanks!</li>
+</ol>
+</p>
+
+<p> Your spiffy new binary RPMs can then be used to install Microraptor on
+any other similar machines you have.</p>
+

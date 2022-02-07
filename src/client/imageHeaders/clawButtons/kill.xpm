@@ -1,0 +1,46 @@
+/***** tell emacs we use -*- c++ -*- style comments *****
+ * $Revision: 1.5 $ $Author: dom $ $Date: 2004/04/28 18:58:51 $
+ *
+ * COPYRIGHT 2004, Carnegie Mellon University 
+ *
+ * PROJECT: Exploration Robotics (Life in the Atacama)
+ *
+ * MODULE:
+ *
+ * FILE: microraptor/client/imageHeaders/killImage.h
+ *
+ * DESCRIPTION:
+ *
+ ********************************************************/
+/* XPM */
+char * killImage_xpm[] = {
+"16 16 6 1",
+" 	c None s None",
+".	c black",
+"X	c #808080",
+"o	c #c0c0c0",
+"O	c yellow",
+"#	c white",
+"                ",
+"       ...      ",
+"      .   .     ",
+"     .     .    ",
+"    ...     .   ",
+"   .....    .   ",
+"  .X#o...    .  ",
+" X.#X....X   .  ",
+" ..oX.....   O O",
+" .......O. O OO ",
+" ......Xo.  OOO ",
+" X.....X.X  O   ",
+"  .......       ",
+"   X...X        ",
+"                ",
+"                "};
+/***************************************************************
+ * Revision History:
+ * $Log: killImage.h,v $
+ * Revision 1.5  2004/04/28 18:58:51  dom
+ * Appended log directive
+ * 
+ ***************************************************************/

@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Documentation for mrterm, the
+text-only Microraptor client.">
+<h2>Using the Serial Client (mrterm)</h2>
+
+<p>mrterm is the barebones text-based client interface to the
+Microraptor network.  It provides the same functionality as <a
+href="index.html.page=docs.claw">claw</a> with respect to
+interfacing with the daemon, without all that pesky graphical
+stuff. :-)</p>
+
+<p>mrterm is most useful for quick-and-dirty playing around with
+Microraptor, especially if you don't have a system with GTK 1.2 (or X)
+installed.  It's also handy within scripts, since its <span
+class="ic">-e</span> option can be used to execute arbitrary
+Microraptor commands.</p>
+
+<h4>Options</h4>
+
+<p>mrterm supports the following commandline arguments:</p>
+
+<ul>
+  <li><b>-h</b> or <b>--help</b>:
+  <div class="content">Print a summary of commandline
+  arguments.</div></li>
+
+  <li><b>-d &lt;host&gt;</b>:
+  <div class="content">Sends commands to the daemon at the
+  specified host.</div></li>
+
+  <li><b>-e &lt;cmd&gt;</b>:
+  <div class="content">Executes the specified command as if it
+  had been sent to stdin.  Multiple commands can be specified using
+  multiple instances of <span class="ic">-e</span>.</div></li>
+
+  <li><b>-q</b>:
+  <div class="content">Tells mrterm to quit after sending -e commands.</div></li>
+
+  <li><b>-i</b>:
+  <div class="content">Specifies that mrterm is being used interactively.
+                 A prompt is provided, and some output becomes more
+                 verbose.</div></li>
+
+  <li><b>-v</b>:
+  <div class="content">Tells mrterm to echo all comm
+  traffic to console for debugging.</div></li>
+
+  <li><b>--centralhost &lt;host&gt;</b>:
+  <div class="content">Specify host/port where IPC
+  central server is running (e.g. <span class="ic">--centralhost
+  foo:1382</span>).</div></li>
+</ul>
+
+<h4>Commands</h4>
+  
+<p>The following commands are handled locally by mrterm.  Any input
+not on this list will be forwarded to the daemon; see <i>The Daemon
+Serial Interface</i> section on the <a
+href="index.html.page=docs.daemon">daemon page</a> for a detailed listing.</p>
+
+
+<ul>
+  <li><b>fg &lt;process_name&gt;</b>
+
+    <p>Put &lt;process_name&gt; in the foreground.  While in
+    foreground mode, mrterm simulates a console connected to the
+    stdin/stdout of the given process.  In order to send a command to
+    the mrterm instead, preface it with a '/' character.  for example,
+    \"/bg\" puts the client back into background mode.</p>
+  </li>
+  <li><b>bg</b>
+
+    <p>Go back into background mode (the default mode), where what you type
+    is interpreted as a command to the mrterm (either processed locally
+    if the command is recognized as a local command, or forwarded to the
+    daemon).</p>
+  </li>
+  <li><b>load &lt;config_file_name&gt;</b>
+
+    <p>Causes mrterm to load a client-side config file and forward the
+    information to the daemon using 'set' commands.  Use 'dload' to load a
+    daemon-side config file.</p>
+  </li>
+  <li><b>help (or 'h')</b>
+
+    <p>Shows help on the mrterm and mraptord interfaces.</p>
+  </li>
+</ul>
+
+<p>As mentioned above, all other commands are forwarded to the daemon
+for processing.  See the <i>Daemon Serial Interface</i> on the <a
+href="index.html.page=docs.daemon#serialInterface">daemon page</a>.
+
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:23:11.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

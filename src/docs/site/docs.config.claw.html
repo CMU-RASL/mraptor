@@ -1,0 +1,136 @@
+<meta name="description" content="Configuring Microraptor's GTK
+client, claw.">
+<h2>Configuring claw</h2>
+
+<div class="content">There are two classes of configuration options
+with claw: commandline options, and local preferences.  Commandline
+options (as well as how to invoke claw) are covered on <a
+href="./index.html?page=docs.claw">claw's documentation page</a>;
+we'll cover local preferences here.</div>
+
+<div class="content">Claw's preferences dialog may be accessed by
+pressing <span class="ic">Ctrl+P</span> or through the <span
+class="ic">Main->Set Local Preferences...</span> menu.  The available
+options are:</div>
+
+<ul>
+  <li><b>View mode:</b> (Legal values: <span class="ic">daemons</span>
+  or <span class="ic">groups</span>; Default: <span class="ic">daemons</span>)<br>
+      <div class="content">The view mode determines the ordering and
+      default expansion of the process tree on the left side of Claw.
+      If set to <span class="ic">daemons</span>, the daemon-rooted
+      process trees will be displayed first, and will be automatically
+      expanded.  This makes the most sense if organizing processes by
+      machine/daemon is logical for your project.</div>
+
+      <div class="content">If set to <span class="ic">groups</span>,
+      the process groups defined in the process configuration file
+      will instead be listed first, and will be automatically
+      expanded.  If you prefer to group your processes into
+      (potentially cross-machine) chunks, this will work better for
+      you.</div>
+  </li>
+
+  <a name="tieSelToTab">
+  <li><b>Tie selection to tab:</b> (Legal values: <span
+  class="ic">0</span> or <span class="ic">1</span>; Default: <span class="ic">1</span>)<br>
+      <div class="content">If 1, the currently selected process in the
+      process tree will change if you select a different process'
+      output in the tabbed window on the right.  If 0, changes to the
+      current tab do not affect the selection in the process tree.
+      This is relevant because many of the keyboard shortcuts use the
+      current process tree selection.</div>
+  </li>
+
+  <li><b>Groups select members:</b> (Legal values: <span
+  class="ic">0</span> or <span class="ic">1</span>; Default: <span class="ic">0</span>)<br>
+      <div class="content">If 1, when a group view tab is selected,
+      all processes in the group will be selected in the process tree.
+      If 0, the group entry will be selected, instead of the component
+      processes.  Again, this is relevant because many of the keyboard
+      shortcuts use the current process tree selection.</div>
+  </li>
+
+  <li><b>Display skew:</b> (Legal values: <span
+  class="ic">0</span> or <span class="ic">1</span>; Default: <span class="ic">0</span>)<br>
+      <div class="content">If 1, display the time skew (if any)
+      between each daemon and the client.  This will be displayed in
+      the Status column of the process tree, in seconds.</div>
+  </li>
+
+  <li><b>Back history length:</b> (Legal values: any non-negative
+  integer; Default: 100)<br>
+      <div class="content">The setting for this option determines how
+      many lines of a process' output will be displayed when the
+      process is first viewed.  Setting this too high will slow the
+      client down when viewing new processes; setting it too low will
+      deny the user much-needed context.</div>
+      <div class="content"><b>Note:</b> While writing this, it was
+      noted that this setting may not be having any effect; I'm
+      looking into it.</div>
+  </li>
+
+  <li><b>Cool graphics:</b> (Legal values: <span
+  class="ic">0</span> or <span class="ic">1</span>; Default: <span class="ic">0</span>)<br>
+      <div class="content">If 1, gratuitous graphics are displayed in
+      the bottom portion of the process tree.  The graphics change
+      from the default whenever an error is logged to the common
+      buffer (the buffer spanning the bottom of Claw's window).</div>
+
+      <div class="content"><b>Note:</b> Due to a bug in gcc, building
+      the XPM graphics files for these graphics takes an extremely
+      long time with gcc 3.1 and 3.2.  Thus, if your RPM was built
+      with an affected gcc, the graphics are not included.  If you
+      wish to build with graphics, grab the source and <span
+      class="ic">#undef NO_BIG_XPMS</span> after the first <span
+      class="ic">#ifndef</span> block at the top of <a
+      href="./source/software/src/microraptor/client/imageHeaders.h">imageHeaders.h</a>
+      (or just delete the first <span class="ic">#ifndef</span> block
+      entirely) before building.</div>
+  </li>
+
+  <li><b>Clear on run:</b> (Legal values: <span
+  class="ic">0</span> or <span class="ic">1</span>; Default: <span class="ic">1</span>)<br>
+      <div class="content">If 1, clear a process' display when a run
+      command is issued.  If 0, keep the output from the previous run
+      in the buffer and append the output from the new run</div>
+  </li>
+
+  <li><b>SSH displays:</b> (Legal values: hash of daemon names to ssh
+  display tunnel; Default: <span class="ic">{}</span><br>
+      <div class="content">Set a hash of daemon name to the SSH
+      display tunnel to be used for processes with a DISPLAY setting
+      of <span class="ic">%c</span>.  See the <a
+      href="source/software/src/microraptor/docs/ssh_tunnelling.txt">SSH
+      Tunnelling Howto</a>; setting this hash substitutes for the
+      <span class="ic">--ssh-display</span> commandline option.</div>
+  </li>
+
+  <li><b>Default config width:</b> (Legal values: <span
+  class="ic">integers greater than 0</span>; Default: <span class="ic">800</span>)<br>
+      <div class="content">The default width, in pixels, for the
+      process configuration windows (e.g. the dialogs that appear when
+      "set config" is selected).  Longer is better for projects with
+      long commandlines; shorter is more compact.</div>
+  </li>
+
+  <li><b>Stdout filtering:</b> (Legal values: <span
+  class="ic">0</span> or <span class="ic">1</span>; Default: <span class="ic">0</span>)<br>
+      <div class="content">If 1, include a filter entry to the right
+      of the stdin entry for each process.  This allows you to use
+      POSIX regexps to filter what lines are displayed.  While this
+      may appear esoteric, it's rather handy when working with
+      log-happy processes. </div>
+  </li>
+
+</ul>
+
+<div class="content">After configuring Claw's preferences to your
+liking, you may save them via the <span class="ic">Main->Save local
+preferences to file...</span> menu item.  The default location is
+<span class="ic">~/.claw.prefs</span>; this is recommended, as it will
+be loaded automatically on startup.  If you save it elsewhere, you
+will need to either specify the <span class="ic">-p</span> option when
+running claw or manually load the config through the <span
+class="ic">Main->Load local preferences from file...</span> menu
+option.</div>

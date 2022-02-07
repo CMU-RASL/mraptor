@@ -1,0 +1,231 @@
+#!/bin/bash
+#
+# mraptord      This shell script takes care of starting and stopping 
+#                microraptor, SysV-style
+
+# chkconfig: 2345 95 10
+# description: mraptord allows robust process control from remote clients
+
+# You will need to customize /etc/mraptord.conf below for your local
+# user and location of microraptor and your system's config file.  Be
+# sure to set "stance" to "primary" or "secondary" depending on
+# whether this machine should start central and load a config file or
+# not.
+
+# description:  mraptord is the daemon component of microraptor, a process 
+#               launch and monitoring tool.
+# processname: /usr/bin/mraptord (set in /etc/mraptord.conf)
+# config: set in /etc/mraptord.conf
+
+if [ -e /etc/redhat-release ] ; then
+    DIST="Redhat"
+elif [ -e /etc/lsb-release ] ; then
+    DIST="Ubuntu"
+else
+    echo 'Unknown distribution.  Mraptord server SysV script only supports RedHat and Ubuntu.';
+    exit 0
+fi
+
+if [ "$DIST" == "Redhat" ] ; then
+    # Source function library.
+    . /etc/rc.d/init.d/functions
+elif [ "$DIST" == "Ubuntu" ] ; then
+    . /lib/lsb/init-functions
+fi
+
+# Source config file
+source /etc/mraptord.conf
+
+if ! [ -e $mraptordProg ] ; then
+    if [ "$DIST" == "Redhat" ] ; then
+	echo_failure
+    elif [ "$DIST" == "Ubuntu" ] ; then
+	log_failure_msg
+    fi
+    echo "Can't find mraptord executable."
+    exit 0
+fi
+
+RETVAL=0
+
+start () {
+    # Do we have central?
+    if [ $stance = "primary" ] ; then
+	if [ "$DIST" == "Ubuntu" ] ; then
+	    log_begin_msg "Starting IPC central on port 1382"
+	fi
+	if ! [ -e $centralProg ] ; then
+	    if [ "$DIST" == "Redhat" ] ; then
+		echo_failure
+	    elif [ "$DIST" == "Ubuntu" ] ; then
+		log_failure_message
+	    fi
+	    echo "Can't find central executable."
+	    return 1
+	fi
+    fi
+
+    export PATH=.:$PATH
+    export CENTRALHOST=$centralhost
+
+    
+    if [ ${#prelaunchfile} -eq 0 ]; then
+        prelaunchfilestr=""
+        prelaunchfilestr2=""
+    else
+        #prelaunchfilestr="-s -- -cf "
+	prelaunchfilestr=""
+        prelaunchfilestr2=" source $prelaunchfile; "
+    fi
+    
+    configfilestr=""
+    
+    if [ $stance = "primary" ] ; then
+       # start central
+       if [ "$DIST" == "Redhat" ] ; then
+          # We should maybe use RH's daemon command here
+	  echo -n "Starting central: "
+	  su - $user -c "$centralProg -s -lx -u -p1382 >& /dev/null &"
+       elif [ "$DIST" == "Ubuntu" ] ; then
+	  # Take a closer look at start-stop-daemon at some point.
+	  # start-stop-daemon --start --exec $centralProg -c $user
+	  su - $user -c "$centralProg -s -lx -u -p1382 >& /dev/null &"
+       fi
+
+
+       RETVAL=$?
+
+       if [ "$DIST" == "Redhat" ] ; then
+	   if [ $RETVAL = 0 ] ; then
+	       success "central";
+	   else
+	       failure "central";
+	   fi
+       elif [ "$DIST" == "Ubuntu" ] ; then
+	   log_end_msg $RETVAL
+       fi
+
+       
+       if [ ${#mraptordConfig} -ne 0 ] ; then
+          configfilestr=" -c ${mraptordConfig} "
+       fi
+    fi
+
+    if [ "$DIST" == "Redhat" ] ; then
+        # start daemon
+        # We should maybe use RH's daemon command here
+	echo -n "Starting mraptord: "
+    elif [ "$DIST" == "Ubuntu" ] ; then
+	log_daemon_msg "Starting Microraptor Daemon" "mraptord"
+	# Think about start-stop-daemon here.
+    fi
+    
+    options_str="";
+    if [ -n "$rate_period" ] ; then
+        options_str="${options_str} --rate-period ${rate_period}";
+    fi
+    if [ -n "$rate_limit" ] ; then
+        options_str="${options_str} --rate-limit ${rate_limit}";
+    fi
+    if [ -n "$rate_limit_stdin" ] ; then
+        options_str="${options_str} --rate-limit-stdin ${rate_limit_stdin}";
+    fi    
+
+    rm -f /tmp/mraptordLog
+    #su - $user -c "${prelaunchfilestr}$mraptordProg -d ${configfilestr} >& /tmp/mraptordLog &"
+    su - $user -c ${prelaunchfilestr} " ${prelaunchfilestr2}$mraptordProg -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& /tmp/mraptordLog &"
+
+    RETVAL=$?
+
+    if [ "$DIST" == "Redhat" ] ; then
+	if [ $RETVAL = 0 ] ; then
+	    success "mraptord";
+	else
+	    failure "mraptord";
+	fi
+    elif [ "$DIST" == "Ubuntu" ] ; then
+	log_end_msg $RETVAL
+    fi
+
+    if [ "$DIST" == "Redhat" ] ; then
+	[ $RETVAL = 0 ] && touch /var/lock/subsys/mraptord
+    fi
+    return $RETVAL
+}
+
+stop () {
+    # stop daemon
+    if [ "$DIST" == "Redhat" ] ; then
+	echo -n "Stopping mraptord: "
+    elif [ "$DIST" == "Ubuntu" ] ; then
+	log_begin_msg "Stopping Microraptor daemon: mraptord"
+    fi
+    killproc $mraptordProg
+    if [ "$DIST" == "Ubuntu" ] ; then
+	log_end_msg $RETVAL
+    fi
+
+
+    RETVAL=$?
+    if [ "$DIST" == "Redhat" ] ; then
+	echo
+    fi
+    if [ $stance = "primary" ] ; then
+	if [ "$DIST" == "Redhat" ] ; then
+	    echo -n "Stopping central: "
+	elif [ "$DIST" == "Ubuntu" ] ; then
+	    log_begin_msg "Stopping IPC central"
+	fi
+	killproc $centralProg
+    fi
+    RETVAL=$?
+    if [ "$DIST" == "Redhat" ] ; then
+	echo
+	[ $RETVAL = 0 ] && rm -f /var/lock/subsys/mraptord
+    elif [ "$DIST" == "Ubuntu" ] ; then
+	log_end_msg $RETVAL
+    fi
+    return $RETVAL
+}
+
+restart () {
+    stop
+    start
+    RETVAL=$?
+    return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status $mraptordProg
+	RETVAL=$?
+	;;
+    restart)
+	restart
+	;;
+    condrestart)
+	if [ "$DIST" == "Redhat" ] ; then
+	    # only restart if it is already running
+	    [ -f /var/lock/subsys/mraptord ] && restart || :
+	else
+	    echo $"Usage: $0 {start|stop|restart|status}"
+	    RETVAL=1
+	fi
+	;;
+    *)
+	if [ "$DIST" == "Redhat" ] ; then
+	    echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+	else
+	    echo $"Usage: $0 {start|stop|restart|status}"
+	fi
+        RETVAL=1
+esac
+
+exit $RETVAL

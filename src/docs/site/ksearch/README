@@ -1,0 +1,83 @@
+KSEARCH CLIENT SIDE VERSION 1.0
+Copyright (C) 2000 KScripts - www.kscripts.com
+
+GNU GENERAL PUBLIC LICENSE:
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA  02111-1307
+
+READ THIS:
+
+This file contains general instructions on how to install and use KSearch Client Side.
+For troubleshooting information go to our FAQs site at: 
+
+http://www.kscripts.com/ksearch-client-side/faqs.html
+
+
+INSTALLATION:
+
+You will need a text editor, and access to your server to edit and run
+scripts. Be sure that the appropriate permissions are set for each
+file/directory.
+
+package includes	file name			set permissions
+indexer script:		indexer.pl			read/exec
+main search window:	search.html			read
+search (top frame):	searchtopframe.html		read
+help page:		help.html			read
+reload page:		searchalt.html			read
+style sheet (CSS):	style.css			read
+configuration file:	configuration/configuration.pl	read
+ignore files list:	configuration/ignore_files.txt	read
+stop terms list:	configuration/stop_terms.txt	read
+
+(For Unix users)	(type at command line)		(type 'ls -l' for file list)
+read/exec		'chmod 755 filename'		-rwxr-xr-x
+read			'chmod 744 filename'		-rwxr--r--
+
+
+1. (For Unix users) Be sure that the path to perl is correct on the first line
+of indexer.pl. To determine the path type 'which perl' at the command line prompt. 
+The path must follow '#!'. Default is '#!/usr/bin/perl'.
+
+2. Change paramaters in the configuration file
+'configuration/configuration.pl'.  All paramaters are explained in this file.
+
+3. Add the full path of files you do not want to index in the ignore files
+list 'configuration/ignore_files.txt' on separate lines.
+(For Unix users) You can determine your current working directory (path) by
+typing 'pwd' at the command line prompt.
+
+4. Add terms you do not want indexed in the stop terms list
+'configuration/stop_terms.txt' on separate lines.
+
+5. You may change the HTML in "help.html", "searchalt.html" and at the end of 
+"searchtopframe.html" (after embedded JavaScript) to match your design preferences. 
+You may also change the cascading style sheet "style.css" to match your design 
+preferences.
+
+6. When you are finished with the configuration you can run the indexer
+script to index your site. Type 'indexer.pl' or './indexer.pl' to run the
+script. The time required will depend on the size of your site and your
+server's CPU.
+
+7. When you are finished indexing your site, you can open "search.html" to 
+search your site.
+
+
+For Additional Information See:
+
+	our FAQs page at: 
+	http://www.kscripts.com/ksearch-client-side/faqs.html
+

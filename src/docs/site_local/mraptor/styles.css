@@ -1,0 +1,205 @@
+/* A lighter shade of blue, used in the logo subtext: 103ea7
+*/
+body {
+       font: normal 13px arial;
+       margin-right: 0%;
+       margin-left: 2%;
+       margin-top: 0%;
+       margin-bottom: 5%;
+       background: #C0C8DB;
+       color: #032677;
+       }
+
+pre {
+      font-family: monospace; 
+      margin-top: 0;
+      margin-bottom: 0;           
+    }
+
+h1,h2,h3,h4,h5,p,ul,ol { font-family: sans-serif; }
+
+p,ul,ol,li { margin-right: 10%; }
+
+li.spaced { padding-bottom: 15px }
+
+ul.spaced { padding-top: 5px;
+            padding-bottom: 10px; }
+
+table.content { margin-right: 10%; }
+
+td.content { text-align: left; 
+             margin-left:5%; }
+
+td.head { font: bold 15px arial;
+          color: #032677;
+          text-align: center;
+         }
+
+td.headLeft { font: bold 15px arial;
+              color: #032677;
+              text-align: left;
+            }
+
+td.shortCell { text-align: center; }
+
+td.shortCellLeft { text-align: left; }
+
+td.shortCellEm { text-align: center;
+                 font: bold 13px arial;
+               }
+
+td.bottomLine { border-bottom: 2px #032677 dotted;
+                text-align: center;
+                font-style: italic;
+               }
+
+td.bottomLineLeft { border-bottom: 2px #032677 dotted;
+                    text-align: left;
+                    padding-bottom: 10px;
+                    padding-top: 10px;
+               }
+
+td.bothLineLeft { border-bottom: 2px #032677 dotted;
+                  border-top: 2px #032677 dotted;
+                  text-align: left;
+                  padding-bottom: 10px;
+                  padding-top: 10px;
+               }
+
+td.padded { padding-bottom: 10px;
+            padding-top: 10px;
+          }
+
+td.topLine { border-top: 2px #032677 dotted;
+             text-align: center;
+             font-style: italic;
+            }
+
+tr.subLink {
+             margin-top: 10px;
+             text-align: center;
+           }
+
+td.subLinkCell {
+                 text-align: center;
+               }
+
+tr.subSubLink {
+             margin-top: 50px;
+             text-align: center;
+           }
+
+td.subSubLinkCell {
+                 text-align: center;
+               }
+
+p,p.content,div.content,ul,ol { margin-left: 3%; }
+
+div.content { margin-top: 10px;
+              margin-bottom: 10px;
+              margin-right: 10%; }
+
+pre.indent { margin-left: 5%; }
+
+p.noindent, ol.noindent, li.noindent { margin-left: 0%;
+                          margin-right: 10%; }
+
+div.noindent { margin-left: 0%;
+               margin-right: 10%; 
+               margin-top: 10px;
+               margin-bottom: 10px;}
+
+div.indent { margin-left: 5%; }
+
+/* Inline command; keep it short - we'll use it a lot */
+span.ic { font-style: italic; 
+         display: inline;
+       }
+
+div.ic { font-family: monospace;
+         margin-left: 5%; 
+         margin-right: 3%;}
+
+div.submit {
+             font: bold 15px arial;
+             color: #032677;
+             text-align: center;
+             vertical-align: middle;
+             text-decoration: none;
+             margin-left: 5px;
+           }
+
+div.submit:hover { 
+                   text-decoration:underline; 
+                   color: #103EA7
+                   }
+
+a.mainLink { 
+             font: bold 17px arial;
+             color: #032677;
+             text-align: center;
+             vertical-align: middle;
+             text-decoration: none;
+             margin-top: 5px;
+             margin-right: 10px;
+             margin-left: 10px;
+             margin-bottom: 0px;
+             }
+a.mainLink:hover { 
+                   text-decoration:underline; 
+                   color: #103EA7
+                   }
+
+
+a.subLink { 
+             font: bold 15px arial;
+             color: #032677;
+             text-align: center;
+             vertical-align: bottom;
+             text-decoration: none;
+             margin-top: 15px;
+             margin-right: 10px;
+             margin-left: 10px;
+             margin-bottom: 0px;
+             }
+a.subLink:hover { 
+                   text-decoration:underline; 
+                   color: #103EA7
+                   }
+
+a.subSubLink { 
+             font: bold 13px arial;
+             color: #032677;
+             text-align: center;
+             vertical-align: bottom;
+             text-decoration: none;
+             margin-top: 15px;
+             margin-right: 10px;
+             margin-left: 10px;
+             margin-bottom: 0px;
+             }
+
+a.subSubLink:hover { 
+                   text-decoration:underline; 
+                   color: #103EA7
+                   }
+
+
+/* CSS for KSearch Client Side by KScripts */
+
+/* Search Results */
+.results { font-size: 12px; font-weight: bold; text-decoration: none; color: #000000;font-family: Verdana; }
+
+/* Search Help Page */
+.help { font-size: 12px; font-weight: bold; text-decoration: none; color: #000000;font-family: Verdana; }
+.helpsmall { font-size: 10px; font-weight: bold; text-decoration: none; color: #000000;font-family: Verdana; }
+
+/* Copyright */
+.copyright { font-size: 10px; font-weight: bold; text-decoration: none; color: #000000;font-family: Verdana; }
+
+/* Search links */
+A.search_results:link { font-size: 12px; font-weight: bold; text-decoration: none;color: #006699;font-family: Verdana; }
+A.search_results:visited { font-size: 12px; font-weight: bold; text-decoration: none;color: #006699;font-family: Verdana; }
+A.search_results:active { font-size: 12px; font-weight: bold; text-decoration: underline; color: #006699;font-family: Verdana; }
+A.seach_results:hover { font-size: 12px; text-decoration: underline; color: #006699;font-family: Verdana; }
+

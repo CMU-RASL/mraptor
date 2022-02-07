@@ -1,0 +1,121 @@
+#!/usr/bin/perl -w
+
+$date = `date`;
+$date =~ /(\d\d):(\d\d):\d\d/;
+$timestr = "$1$2";
+
+$binDir = "/user/atacama/tests/current/bin";
+$binDirExec = "/user/atacama/tests/current/processes/roverExecutive/bin_idea_dev";
+$logDir = "/user/atacama/tests/current/logs/mrlogs";
+$logBase = "roverExec_unfiltered_${timestr}_$$.log";
+$logFile = "$logDir/$logBase";
+$logStraceBase = "roverExec_strace_${timestr}_$$.log";
+$logStraceFile = "$logDir/$logStraceBase";
+
+system("ln -sf $logBase $logDir/roverExec_unfiltered_latest.log") and
+    die "ERROR: couldn't create symlink $logDir/roverExec_unfiltered_latest.log: $!\n";
+
+if (0) {
+    # short circuit filtering
+    exec("$binDirExec/agentrunner_sh_o", @ARGV) or
+	die "ERROR: runLitaMissionExec: couldn't exec litaMissionExec: $!\n";
+}
+
+if (1) {
+    local(*CHILD); # declaration avoids warning
+
+    print "runLitaMissionExec: running litaMissionExec with filtered output\n";
+    print "runLitaMissionExec: (for unfiltered output see $logFile)\n";
+
+    if ($pid = open(CHILD, "|-")) {
+	# parent writes to child
+
+	open(STDOUT, ">&CHILD") or
+	    die "ERROR: runLitaMissionExec: couldn't redirect stdout to filter: $!\n";
+	open(STDERR, ">&CHILD") or
+	    die "ERROR: runLitaMissionExec: couldn't redirect stderr to filter: $!\n";
+
+	#set the priority that we want the exec to run with
+	system("$binDir/setuid/renice_anyone -1 $$");
+
+	exec("$binDirExec/agentrunner_sh_o", @ARGV) or
+	    die "ERROR: runLitaMissionExec: couldn't exec litaMissionExec: $!\n";
+    } else {
+	# child reads from parent
+
+	die "ERROR: runLitaMissionExec: couldn't fork: $!" unless defined $pid;
+
+	open(LOG, ">$logFile") or
+	    die "ERROR: runLitaMissionExec: couldn't open $logFile for writing: $!\n";
+	select(LOG);
+	$| = 1; # switch on autoflushing of LOG to avoid truncated output
+	select(STDOUT);
+
+	$print_while_indented = 0;
+	while (<STDIN>) {
+	    print LOG;
+	    if ($print_while_indented) {
+		if (/^\s/) {
+		    print;
+		    next;
+		}
+		$print_while_indented = 0;
+	    }
+	    if (
+
+		######################################################################
+		# WHITELIST + CONTINUE PRINTING PATTERN
+		######################################################################
+		# (if this pattern matches, print and continue printing the following
+		#  lines as long as they remain indented)
+
+		0   #/IPC_ASSIST::DEFINEMSG:/
+
+		######################################################################
+
+		) {
+		print;
+		$print_while_indented = 1;
+	    } else {
+
+		######################################################################
+		# WHITELIST PATTERN
+		######################################################################
+
+		next unless
+		    / ERROR:
+		    | Error:
+		    | WARNING:
+		    | Warning:
+		    | Publishing
+		    | Handling
+		    | is\ ready
+		    | InternalExecMessage
+		    | step\ count 
+		    | getCurrentTick
+		    | executeOneCycle /x;
+
+		######################################################################
+		# BLACKLIST PATTERN
+		######################################################################
+		
+		next if
+		    / Compat\ for\ predicate
+		    | is\ marked\ non-branching
+		    | already\ in\ use;\ model\ still\ valid
+		    | Zero\ gap\ in\ timeline /x;
+
+		######################################################################
+		# OPERATIONS TO PERFORM BEFORE PRINTING
+		######################################################################
+
+		# remove initial expression in brackets []
+		s/^\[[^\]]*\] //;
+
+		######################################################################
+
+		print;
+	    }
+	}
+    }
+}

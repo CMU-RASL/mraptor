@@ -1,0 +1,12 @@
+<rcl>
+  <a>4</a>
+  <s>"hello"</s>
+  <m>
+    <a>1</a>
+    <b>2</b>
+  </m>
+  <v>
+    <item>3</item>
+    <item>4</item>
+  </v>
+</rcl>

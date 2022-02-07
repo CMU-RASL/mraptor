@@ -1,0 +1,347 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=download">Download Home</a>
+<a class="subLink" href="index.html.page=download.old">Old Releases</a>
+            </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Download RPMs, SRPMs, or tarballs of
+Microraptor and the IPC library.">
+<h2>Downloads</h2>
+
+<p>I've now started maintaining RPMs for mraptor on a
+limited basis, with the usual caveat: I don't have time to provide
+support unless we're already working together. :-) These RPMs
+supersede the well-intentioned but problem-fraught mrapins install
+script / executable tarball.  If you desperately need a pre-RPM
+version for some strange reason, let me know, but I'll likely just
+tell you to upgrade. :-) Old RPMs are available <a
+href="index.html.page=download.old">here</a>, but are
+unsupported.</p>
+
+<p>All mraptord configuration for control via the SysV
+(/etc/init.d/mraptord) scripts is in /etc/mraptord.conf.  You'll want
+to edit this after installation.  Once you've filled in the relevant
+options, an /sbin/service mraptord start or stop (or
+/etc/init.d/mraptord start (or stop), if you're so inclined) will
+bring mraptord up or down (note that it runs central on port 1382 -
+you'll need to be sure to set your CENTRALHOST appropriately on
+machines running the client, or use the "--centralhost
+mraptordmachine:1382" argument to claw (mrterm doesn't support this
+commandline argument, but will pick up CENTRALHOST)).  See the <a
+href="index.html.page=docs.install">install docs</a> for more
+details.</p>
+
+<p>As of Release 1.1.3-1, the Microraptor RPM package has been split
+into 5 subpackages: server, claw, mrterm, util, and dev.  This allows
+you to install exactly the combination of services you need.  In
+particular, the client (either claw and/or mrterm) can now be
+installed without concurrently installing the server.  At the moment,
+'util' contains solely the mrapMonitor utility, which is intended to
+allow scripting of arbitrary events in response to mraptor events,
+such as process status changes.  It is officially unsupported, and at
+the moment is only used by the Roboceptionist project.  The 'dev'
+package includes the headers and libraries needed to interface with
+the mraptor system.</p>
+
+<p>In addition, as of Release 1.1.3-1, there is a single SRPM / source
+tarball for the project.  The 5 subpackages are all built from a
+single SRPM.  As a result, building binary RPMs for a new platform is
+a <a href="index.html.page=docs.install.srpm">one-liner</a>.
+
+<p><b>NOTE:</b> Due to the change in packaging, you <b>must</b>
+uninstall (<span class="ic">rpm -ev mraptor mraptor-server</span>) all
+pre-1.1.3 mraptor packages before installing any of 1.1.3 or later
+RPMs.  Be sure to make a copy of your /etc/mraptord.conf on all daemon
+machines (you can just copy it back after the install; the syntax
+hasn't changed).</p>
+
+<p>As of Release 1.1.3-2, Ubuntu Dapper Drake .deb's will now be
+packaged for each release.</p>
+
+<p>As of Release 1.2.0-1, we will no longer be building CMU
+CS-Facilitized RedHat 7.1 RPMs, as Facilities has stopped supporting
+RH 7.1.  If you need these, and have a build machine you're willing to
+let us use, drop us a line, and we can add it back in.</p>
+
+<p>Backwards compatibility was slightly affected by Release 1.2.3-1:
+the new chat functionality may have problems if 1.2.3 clients interact
+with pre-1.2.3 daemons, or vice versa.  The core functionality of
+Microraptor is not affected.</p>
+
+<!-- FIXME: IPC RPM notes. -->
+
+<h4>Version 1.2.7-1</h4>
+
+<ul>
+  <li> <b>Changelog:</b> </li>
+  <ul>
+    <li>Stdin and filter histories are now saved across view/close of a process and stop/start of claw.  Added arg for history file location and preferences for length of these per-process histories (defaults to 10).</li>
+    <li>Added a preference to allow claw to remember its last location and size.  On by default.</li>
+    <li>Claw no longer prints out the initial status of all processes, since it was rather annoying.  Status is still printed when a process changes state from the first state observed by claw.</li>
+    <li>Fixed claw crash when closed via the window manager.</li>
+    <li>Miscellaneous UI tweaks in claw -- see if you can find them!.</li>
+  </ul>
+</ul>
+
+<ul>
+  <li><b>Source distributions</b>
+  <ul>
+    <li>Source tarball: <a href="http://www.microraptor.org/source/releases/mraptor-1.2.7.tar.gz">           
+             mraptor-1.2.7.tar.gz
+           </a></li>
+    <li>SRPM: <a href="http://www.microraptor.org/SRPMS/mraptor-1.2.7-1.src.rpm">
+             mraptor-1.2.7-1.src.rpm
+           </a> (see the <a
+           href="index.html.page=docs.install">install docs</a> for
+           SRPM-rebuilding instructions)</li>
+  </ul>
+  <li><b>mraptor-server (mraptord and configs only)</b>
+  <ul>
+    <li>RedHat 7.2 (Stock / Trestle / gcc 3.2.3) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-server-1.2.7-1.RH-7.2-stock.i386.rpm">
+             mraptor-server-1.2.7-1.RH-7.2-stock.i386.rpm
+           </a></li>
+    <!--
+    <li>RedHat 7.2 (Grace / gcc 2.96) RPM: <a href="RPMS/i386/mraptor-server-1.2.7-1.RH-7.2-grace.i386.rpm">
+             mraptor-server-1.2.7-1.RH-7.2-grace.i386.rpm
+           </a></li>
+    -->
+    <li>RedHat 9.0 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-server-1.2.7-1.RH-9.0-CMU.i386.rpm">
+             mraptor-server-1.2.7-1.RH-9.0-CMU.i386.rpm
+           </a></li>
+    <li>Fedora Core 3 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-server-1.2.7-1.FC3-CMU.i386.rpm">
+             mraptor-server-1.2.7-1.FC3-CMU.i386.rpm
+           </a></li>
+    <li>Ubuntu 6.06 (Dapper Drake, gcc-3.3 / libstdc++.so.5) DEB: <a href="http://www.microraptor.org/DEBS/mraptor-server_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb">
+             mraptor-server_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb
+           </a></li>
+  </ul>
+  </li>
+
+  <li><b>mraptor-claw (GTK client)</b>
+  <ul>
+    <li>RedHat 7.2 (Stock / Trestle / gcc 3.2.3) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-claw-1.2.7-1.RH-7.2-stock.i386.rpm">
+             mraptor-claw-1.2.7-1.RH-7.2-stock.i386.rpm
+           </a></li>
+    <!--
+    <li>RedHat 7.2 (Grace / gcc 2.96) RPM: <a href="RPMS/i386/mraptor-claw-1.2.7-1.RH-7.2-grace.i386.rpm">
+             mraptor-claw-1.2.7-1.RH-7.2-grace.i386.rpm
+           </a></li>
+    -->
+    <li>RedHat 9.0 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-claw-1.2.7-1.RH-9.0-CMU.i386.rpm">
+             mraptor-claw-1.2.7-1.RH-9.0-CMU.i386.rpm
+           </a></li>
+    <li>Fedora Core 3 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-claw-1.2.7-1.FC3-CMU.i386.rpm">
+             mraptor-claw-1.2.7-1.FC3-CMU.i386.rpm
+           </a></li>
+    <li>Ubuntu 6.06 (Dapper Drake, gcc-3.3 / libstdc++.so.5) DEB: <a href="http://www.microraptor.org/DEBS/mraptor-claw_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb">
+             mraptor-claw_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb
+           </a></li>
+  </ul>
+  </li>
+
+  <li><b>mraptor-mrterm (text-based client)</b>
+  <ul>
+    <li>RedHat 7.2 (Stock / Trestle / gcc 3.2.3) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-mrterm-1.2.7-1.RH-7.2-stock.i386.rpm">
+             mraptor-mrterm-1.2.7-1.RH-7.2-stock.i386.rpm
+           </a></li>
+    <!--
+    <li>RedHat 7.2 (Grace / gcc 2.96) RPM: <a href="RPMS/i386/mraptor-mrterm-1.2.7-1.RH-7.2-grace.i386.rpm">
+             mraptor-mrterm-1.2.7-1.RH-7.2-grace.i386.rpm
+           </a></li>
+    -->
+    <li>RedHat 9.0 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-mrterm-1.2.7-1.RH-9.0-CMU.i386.rpm">
+             mraptor-mrterm-1.2.7-1.RH-9.0-CMU.i386.rpm
+           </a></li>
+    <li>Fedora Core 3 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-mrterm-1.2.7-1.FC3-CMU.i386.rpm">
+             mraptor-mrterm-1.2.7-1.FC3-CMU.i386.rpm
+           </a></li>
+    <li>Ubuntu 6.06 (Dapper Drake, gcc-3.3 / libstdc++.so.5) DEB: <a href="http://www.microraptor.org/DEBS/mraptor-mrterm_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb">
+             mraptor-mrterm_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb
+           </a></li>
+  </ul>
+  </li>
+
+  <li><b>mraptor-util (unsupported utilities)</b>
+  <ul>
+    <li>RedHat 7.2 (Stock / Trestle / gcc 3.2.3) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-util-1.2.7-1.RH-7.2-stock.i386.rpm">
+             mraptor-util-1.2.7-1.RH-7.2-stock.i386.rpm
+           </a></li>
+    <!--
+    <li>RedHat 7.2 (Grace / gcc 2.96) RPM: <a href="RPMS/i386/mraptor-util-1.2.7-1.RH-7.2-grace.i386.rpm">
+             mraptor-util-1.2.7-1.RH-7.2-grace.i386.rpm
+           </a></li>
+    -->
+    <li>RedHat 9.0 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-util-1.2.7-1.RH-9.0-CMU.i386.rpm">
+             mraptor-util-1.2.7-1.RH-9.0-CMU.i386.rpm
+           </a></li>
+    <li>Fedora Core 3 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-util-1.2.7-1.FC3-CMU.i386.rpm">
+             mraptor-util-1.2.7-1.FC3-CMU.i386.rpm
+           </a></li>
+    <li>Ubuntu 6.06 (Dapper Drake, gcc-3.3 / libstdc++.so.5) DEB: <a href="http://www.microraptor.org/DEBS/mraptor-util_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb">
+             mraptor-util_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb
+           </a></li>
+  </ul>
+  </li>
+
+  <li><b>mraptor-dev (mraptor interface headers and libraries)</b>
+  <ul>
+    <li>RedHat 7.2 (Stock / Trestle / gcc 3.2.3) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-dev-1.2.7-1.RH-7.2-stock.i386.rpm">
+             mraptor-dev-1.2.7-1.RH-7.2-stock.i386.rpm
+           </a></li>
+    <!--
+    <li>RedHat 7.2 (Grace / gcc 2.96) RPM: <a href="RPMS/i386/mraptor-dev-1.2.7-1.RH-7.2-grace.i386.rpm">
+             mraptor-dev-1.2.7-1.RH-7.2-grace.i386.rpm
+           </a></li>
+    -->
+    <li>RedHat 9.0 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-dev-1.2.7-1.RH-9.0-CMU.i386.rpm">
+             mraptor-dev-1.2.7-1.RH-9.0-CMU.i386.rpm
+           </a></li>
+    <li>Fedora Core 3 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/mraptor-dev-1.2.7-1.FC3-CMU.i386.rpm">
+             mraptor-dev-1.2.7-1.FC3-CMU.i386.rpm
+           </a></li>
+    <li>Ubuntu 6.06 (Dapper Drake, gcc-3.3 / libstdc++.so.5) DEB: <a href="http://www.microraptor.org/DEBS/mraptor-dev_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb">
+             mraptor-dev_1.2.7-1.Ubuntu-Dapper-gcc33_i386.deb
+           </a></li>
+  </ul>
+  </li>
+
+</ul>
+
+
+
+<h4>IPC: Version 3.7.10-1</h4>
+<a name="ipc">
+<p>This is an <b>unofficial</b> packaging of IPC, primarily used to
+automate the release of Microraptor.  Use at your own risk.</p>
+
+<ul>
+  <li>Source tarball: <a href="http://www.microraptor.org/source/releases/ipc-3.7.10.tar.gz"> ipc-3.7.10.tar.gz </a></li>
+  <li>SRPM: <a href="http://www.microraptor.org/SRPMS/ipc-3.7.10-3.src.rpm">
+           ipc-3.7.10-3.src.rpm
+         </a> (see the <a
+         href="index.html.page=docs.install">install docs</a> for
+         SRPM-rebuilding instructions)</li>
+  <li>RedHat 7.1 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/ipc-3.7.10-1.RH-7.1-CMU.i386.rpm">
+           ipc-3.7.10-1.RH-7.1-CMU.i386.rpm
+         </a></li>
+  <li>RedHat 7.2 (Stock / Trestle / gcc 3.2.3) RPM: <a href="http://www.microraptor.org/RPMS/i386/ipc-3.7.10-3.RH-7.2-stock.i386.rpm">
+           ipc-3.7.10-3.RH-7.2-stock.i386.rpm
+         </a></li>
+  <li>RedHat 7.2 (Grace / gcc 2.96) RPM: <a href="http://www.microraptor.org/RPMS/i386/ipc-3.7.10-3.RH-7.2-grace.i386.rpm">
+           ipc-3.7.10-3.RH-7.2-grace.i386.rpm
+         </a></li>
+  <li>RedHat 9.0 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/ipc-3.7.10-3.RH-9.0-CMU.i386.rpm">
+           ipc-3.7.10-3.RH-9.0-CMU.i386.rpm
+         </a></li>
+  <li>Fedora Core 3 (CMU CS) RPM: <a href="http://www.microraptor.org/RPMS/i386/ipc-3.7.10-3.FC3-CMU.i386.rpm">
+           ipc-3.7.10-3.FC3-CMU.i386.rpm
+         </a></li>
+  <li>Ubuntu 6.06 (Dapper Drake, gcc-3.3 / libstdc++.so.5) DEB: <a href="http://www.microraptor.org/DEBS/ipc_3.7.10-3.Ubuntu-Dapper-gcc33_i386.deb">
+           ipc_3.7.10-3.Ubuntu-Dapper-gcc33_i386.deb
+         </a></li>
+</ul>
+
+All old versions are now archived <a
+href="index.html.page=download.old">here</a>.  If you need to build
+a binary RPM from a source RPM (SRPM), see the <a
+href="index.html.page=docs.install">install docs</a>.
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: May 30, 2007 at 17:31:53.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

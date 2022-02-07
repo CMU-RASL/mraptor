@@ -1,0 +1,6 @@
+Install instructions for microraptor
+
+Install the RPM.  RPM's are available at
+http://gs295.sp.cs.cmu.edu/brennan/mraptor/.  If an RPM for your
+platform isn't available, build one from the SRPM and send me the
+results (instructions for doing so are on the mraptor site).

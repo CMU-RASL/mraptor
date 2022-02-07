@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title></title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="The Microraptor FAQ.">
+<h2>Troubleshooting / Common Mistakes</h2>
+
+<p>In other words, a FAQ.  Please <a
+href="index.html.page=contact">contact us</a> if you have questions
+about Microraptor, or have a problem and solution you think would be
+helpful to others.  For processs configuration file-related questions,
+see the <a
+href="index.html.page=docs.config.writeConfig#configGotchas">Gotchas</a> section
+of the <a href="index.html.page=docs.config">Config</a> page.</p>
+
+
+<ol>
+   <li><p class="noindent">Microraptor insists that my program isn't
+   here, but I'm sure I have the working directory right!  What's
+   going on?</p>
+
+   <p class="noindent">Your (mraptord's) path likely does not include
+   the current directory (i.e. ".").  Check this by changing one of
+   your programs' commandlines to <i>env</i>, and look at the PATH
+   variable in the output.  The fix is to prepend "./" to your
+   executable's name in your config file, or change the file pointed
+   to by mraptord's prelaunchfile directive (in /etc/mraptord.conf) to
+   include "." in your path.  We recommend the former: including the
+   cwd in your path often results in difficult-to-track-down problems
+   months down the road when you've forgotten you made the change.</p>
+   </li>
+
+   <li><p class="noindent">I killed a process, but it won't die!  When
+   I login to the offending machine and run 'ps auxww', the process is
+   listed as &lt;defunct&gt;.  What gives?</p>
+
+   <p class="noindent">We believe this bug has been fixed beginning
+   version 1.1.1.  If you observe these symptoms when using a version
+   of Microraptor >= 1.1.1, please report the bug to us, with as much
+   detail as possible.  Restarting the offending mraptord should
+   temporarily resolve the problem.</p>
+   </li>
+
+   <li><p class="noindent">I started mraptord by hand to test things
+   out, but it's just printing out a never-ending series of
+   dots/periods/'.'s.  What the heck?</p>
+
+   <p class="noindent">mraptord isn't connecting to central properly:
+   if you're not using our startup scripts, it will use the default
+   IPC port (1381).</p>
+
+   <p class="noindent">If you installed the RPM, you should have an
+   /etc/init.d/mraptord entry - if you start up mraptord and central
+   via it (<i>/etc/init.d/mraptord start</i>), it should all Just Work
+   (be sure to edit /etc/mraptord.conf first; see the <a
+   href="index.html.page=docs.config">config page</a>).  Use chkconfig if
+   you'd rather not have mraptord start on boot (for better or worse,
+   the default setup).
+
+   <p class="noindent">If you'd rather just run everything by hand for
+   now, you need to either set CENTRALHOST to localhost:1382 in the
+   mraptord shell (or somewhere else if central isn't running on the
+   same machine as mraptord, obviously) or pass mraptord a
+   '--centralhost localhost:1382' argument.</p>
+
+   <p class="noindent">Alternatively, just run central on 1381, and
+   it'll all run out of the box w/o arguments.  Sharing a central
+   between mraptor and your system is discouraged, however, since if
+   your system loads central or you need to restart it (i.e.  because
+   message definitions have changed), you also must restart the
+   mraptord net.</p>
+   </li>
+
+   <li><p class="noindent">I'm trying to run claw from a remote
+   machine by <i>ssh -X</i>'ing in, then running claw.  However, I get
+   an error something like:
+<div class="ic">
+Gdk-ERROR **: BadWindow (invalid Window parameter)<br>
+  serial 23964 error_code 3 request_code 38 minor_code 0<br>
+Gdk-ERROR **: BadAccess (attempt to access private resource denied)<br>
+  serial 23965 error_code 10 request_code 102 minor_code 0<br>
+</div></p>
+
+   <p class="noindent">What gives?</p>
+
+   <p class="noindent">I haven't done the digging to figure out
+   <i>exactly</i> what's going on, but it has something to do with
+   mismatches in X servers or something similar.  The fix is to <i>ssh
+   -Y</i>, or set the <i>ForwardX11Trusted=yes</i> key in your
+   ssh_conf. <i>Thanks to Rachel Gockley for finding the 'ssh -Y' workaround!</i></p>
+
+<li><p class="noindent">How do I restart mraptord?</p>
+     
+<p class="noindent">This is covered in detail on the <a
+href="index.html.page=docs.config.mraptord">config page</a>.  In
+short, for an RPM-installed mraptord: </p>
+
+<div class="ic">
+<b>To start:</b> /etc/init.d/mraptord start<br>
+<b>To stop:</b> /etc/init.d/mraptord stop<br>
+</div></li>
+
+
+</ol>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: August 11, 2006 at 16:40:59.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

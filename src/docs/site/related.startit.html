@@ -1,0 +1,110 @@
+<meta name="description" content="A review of StartIt, a project
+somewhat similar to Microraptor.">
+<h2>StartIt</h2>
+<b>Developed by:</b> SRI<br>
+<b>Part of:</b> The Open Agent Architecture (OAA)<br>
+<b>URL:</b> <a
+href="http://www.ai.sri.com/oaa/distribution/v2.3/doc/agents/startit/startit-doc.html">http://www.ai.sri.com/oaa/distribution/v2.3/doc/agents/startit/startit-doc.html</a><br>
+<b>Date Reviewed:</b> Sept. 20, 2005<br>
+<b>Version Reviewed:</b> Documentation for version 2.3.0, August 2003<br>
+<b>Reviewed by:</b> Brennan Sellner<br>
+
+<p class="content">At a glance, this looks like a somewhat more
+graphical version of Microraptor.  However, there are a number of
+important differences (in no particular order):</p>
+
+<ul>
+  <li><b>Process interaction:</b> StartIt does not appear to allow the
+  user to interact with running processes via stdin, although it does
+  provide a tabbed log of stdout/stderr output.  Microraptor provides
+  nearly complete terminal emulation (with the exception of control
+  sequences such as Ctrl+C, but they have equivalents within
+  Microraptor's functionality).<br><br></li>
+
+  <li><b>Robustness:</b> One of Microraptor's design goals was to
+  allow clients (and even daemons in extreme situations) to leave and
+  rejoin the Microraptor network without disrupting process execution.
+  This is especially important when high-latency / low-reliability
+  networks (i.e. wireless) are being used: if the wireless connection
+  to the client goes away, you don't want your processes to die.  It's
+  somewhat unclear to me how StartIt manages this; it looks like one
+  of two things may be going on:
+     <ol>
+        <li> The 'Facilitator' launches all other processes.</li>
+        <li> StartIt (which I believe is the GUI) launches other
+        processes. </li>
+     </ol>
+  Since StartIt uses ssh for remote process launching, either case
+  comes with its own perils, although the first option is somewhat
+  better.  In the latter case, if you shut down the client, all of
+  your processes will die.  In the former, if the network connection
+  between the machine the Facilitator is running on and any other
+  machine temporarily goes away, the ssh session will time out and
+  your processes will be terminated.
+  <br><br></li>
+
+  <li><b>Multiple Clients:</b> I can't tell whether StartIt provides
+  the ability for multiple clients to connect.  Microraptor allows an
+  arbitrary number of clients to connect and monitor whichever
+  processes each user is interested in; this is a boon when working in
+  a team environment.<br><br></li>
+
+  <li><b>Screen management:</b> StartIt uses significantly more screen
+  real estate per process than Microraptor.  Whereas Microraptor has
+  been easily used on projects involving more than 20 simultaneous
+  processes (the current record is 55), as soon as you exceed six or
+  so processes in StartIt you have to scroll back and forth to check
+  on their status.  While processes can be hidden, this is cumbersome.
+  In Microraptor, a tree view of machines and processes is available
+  to allow you to view the status of all processes at a glance.
+
+  In addition, it appears that StartIt uses a separate window to
+  provide 'debug output' (stdout/stderr of the running processes).
+  This means yet another window to manage, which bugs me. :-)  This is
+  a personal preference, but Microraptor keeps everything organized in
+  a single window.<br><br></li>
+
+  <li><b>Commandline Management:</b> StartIt does provide the ability
+  to generate rather nifty graphical interfaces to a process'
+  commandline, at the cost of significant screen real estate.
+  Microraptor has no such ability, instead only exposing the 'raw'
+  commandline.  It's a neat feature, and on thinking about it, may be
+  relatively straightforward to implement in Microraptor (although in
+  the form of dialog windows, to conserve screen space).  Let us know
+  if this is something you would really like to see happen. <br><br></li>
+
+  <li><b>Alternate Interfaces:</b> As far as I can tell, StartIt
+  provides only the one GUI.  In contrast, Microraptor supports a GUI
+  ('claw'), a text-based interface ('mrterm'), and a C++ library suite
+  allowing your processes to easily take advantage of Microraptor's
+  process control features (libmrclient, libmrcommon, librcl).<br><br></li>
+
+  <li><b>Portability:</b> StartIt is written in Java, and so should run
+  anywhere a compatible JVM exists.  Microraptor's client ('claw') is
+  written in GTK, and thus should be compilable on any architecture
+  GTK supports.  However, to date we haven't had need for anything
+  beyond Linux - contact us if you would like to see the client run on
+  any other architecture, especially if you would be willing to do the
+  porting. :-)  Microraptor's daemon (mraptord) also has only been
+  used on Linux platforms, but should be portable to other *nix's.  We
+  haven't investigated the feasibility of porting mraptord to Windows,
+  and probably never will (at least not without a fair amount of
+  incentive :-).<br><br></li>
+
+  <li><b>Vitality:</b> I'm not sure of StartIt's current development /
+  maintenance status, although the last release being in 2003 seems to
+  point to possible abandonware.  I haven't spent any time verifying
+  this, however.  Microraptor is being actively maintained and
+  extended by Trey and myself; we both use it on a daily basis on a
+  number of different large projects.<br><br></li>
+</ul>
+
+<h4> The Bottom Line </h4>
+
+  <p class="content">StartIt wins in portability due to its use of
+  Java, and is somewhat more graphically appealing for low numbers of
+  processes (depending on your tastes).  However, Microraptor is
+  significantly more flexible, easily supports many more processes,
+  supports direct interaction with running processes, should be more
+  robust, definitely supports multiple clients, and is definitely
+  being actively maintained.</p>

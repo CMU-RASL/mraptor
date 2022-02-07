@@ -1,0 +1,486 @@
+#! /bin/bash
+
+# Install script v1.0 for the Microraptor system.
+#
+# See usage() for invocation information
+
+# Outline of execution:
+#   1. Parse options
+#   2. Create directory structure
+#   3. Extract tarball from ourself :)
+#   4. Build links to IPC installation
+#   5. Build binaries
+#   6. Install binaries
+#   7. Set up SysV stuff
+
+# TODO:
+#   - option to add path stuff to .*rc file...
+#   - reverify on 7.1 machine
+#   - figure out how to detect whether we need to quote sudo command or not, modify
+#     mraptord.sysv appropriately
+#     - Hmm, looks like su needs the quotes, but sudo doesn't.  Fix it.
+#   - figure out if there's a right way to use -s with sudo / su to run a particular
+#     shell
+
+# Helper functions
+usage () {
+    echo "Invocation:"
+    echo "  $0 [options]"
+    echo ""
+    echo "Available options:"
+    echo " Installation related:"
+    echo "  REQUIRED:"
+    echo "   -i || --ipcpath <path>: Path to IPC source tree (directory above bin and src)"
+    echo "  RECOMMENDED:"
+    echo "   --bindir <directory>: where to install mraptord and claw binaries"
+    echo "  OPTIONAL:"
+    echo "   --prefix <directory>: where to install source tree (defaults to cwd)"
+    echo "   --gccpath <directory>: Directory in which the copy of gcc we'll use"
+    echo "      resides.  Note that we provide no support for any version of gcc"
+    echo "      prior to 2.95 (specifically, egcs 2.91.66 is known to fail"
+    echo "      miserably)."
+    echo "   --sysvonly: ONLY install the SysV scripts. You must use"
+    echo "     --bindir to specify the location of the existing binaries."
+    echo "   --nosysv: Don't install SysV startup scripts"
+    echo "   --sysvprefix <directory>: Directory that contains init.d and rcX.d "
+    echo "      directories (default is /etc)"
+    echo "   --user <username>: Run mraptord as <username> from SysV scripts."
+    echo "   --prelaunchfile <filename>: source <filename> before running"
+    echo "      mraptord from the SysV scripts.  Note that this file must"
+    echo "      be consistent with the --prelaunchshell option"
+    echo "   --prelaunchshell <shell>: What shell should mraptord be run under?"
+    echo "      The prelaunchfile must be in the appropriate format to be"
+    echo "      sourced by this shell.  Defaults to --user's default shell."
+    echo "      THIS IS CURRENTLY NOT IMPLEMENTED."
+    echo "   --noclient: Don't build the client (requires GTK 1.2 and libzvt)"
+    echo "   --noinstall: Don't actually install anything outside the source"
+    echo "      tree; just print out what would go where"
+    echo "   --nosudo: Don't use sudo in the SysV scripts; use su instead"
+    echo "      (moot if --nosysv exists).  Note that this makes"
+    echo "      --prelaunchshell moot."
+    echo "      You need this on CMU CS-facilitized machines!"
+    echo ""
+    echo " Configuration related (moot if --nosysv):"
+    echo "  RECOMMENDED:"
+    echo "   --centralhost <hostname>: Full hostname of machine that will be"
+    echo "      running in primary mode.  Defaults to localhost. (Don't include"
+    echo "      port number.)"
+    echo "   --defaultconfig <pathtofile>: Full path to default config file"
+    echo "      (ignored if --secondary).  Defaults to empty."
+    echo "  OPTIONAL:"
+    echo "   -p || --primary: Install in primary mode (default).  This only affects"
+    echo "       the SysV scripts, and will launch central & load the default"
+    echo "       config file on startup."
+    echo "   -s || --secondary: Install in secondary mode. Just launch the daemon."
+    exit 0
+}
+
+# Set up defaults for options
+prefix=`pwd`
+gccpath=""
+bindir="${prefix}/mraptor/software/bin"
+sysv=1
+sysvprefix="/etc"
+sysvonly=0
+client=1
+install=1
+nosudo=0
+ipcpath=""
+mode="primary"
+centralhost="localhost:1382"
+defaultconfig=""
+user=$USER
+prelaunchfile=""
+prelaunchshell="" # Default's to user's default shell, after parsing options
+
+####################################
+# 1) PARSE OPTIONS
+####################################
+
+if [ $# -lt 1 ]; then
+    echo "Not enough arguments!"
+    usage
+fi
+
+set -- `getopt --longoptions ipcpath:,gccpath:,prefix:,bindir:,nosysv,sysvonly,sysvprefix:,user:,prelaunchfile:,prelaunchshell:,noclient,noinstall,primary,secondary,centralhost:,defaultconfig:,nosudo -- sdsi:ps  "$@"` || {
+    usage
+}
+
+# Strip quotes from getopt output (older versions of getopt barf on the -u option)
+set -- `echo $* | tr -d "\'"`
+
+while :
+do
+    # Can't figure out how to let cases fall through...
+    case "$1" in
+    -i)               shift; ipcpath="$1" ;;
+    --ipcpath)        shift; ipcpath="$1" ;;
+    --prefix)         shift; prefix="$1" ;;
+    --gccpath)        shift; gccpath="$1" ;;
+    --bindir)         shift; bindir="$1" ;;
+    --sysvonly)       sysvonly=1 ;;
+    --nosysv)         sysv=0 ;;
+    --sysvprefix)     shift; sysvprefix="$1" ;;
+    --user)           shift; user="$1" ;;
+    --prelaunchfile)  shift; prelaunchfile="$1" ;;
+    --prelaunchshell) shift; prelaunchshell="$1" ;;
+    --noclient)       client=0 ;;
+    --noinstall)      install=0 ;;
+    --nosudo)         nosudo=1 ;;
+    -p)               mode="primary" ;;
+    --primary)        mode="primary" ;;
+    -s)               mode="secondary" ;;
+    --secondary)      mode="secondary" ;;
+    --centralhost)    shift; centralhost="$1:1382" ;;
+    --defaultconfig)  shift; defaultconfig="$1" ;;
+    --)               break ;;
+    esac
+    shift
+done
+shift
+
+# If prelaunchshell isn't set, default to user's
+if [ ${prelaunchshell:-iambogus} = "iambogus" ]; then
+    prelaunchshell=`grep $user /etc/passwd | cut --delimiter=: --fields=7`
+fi
+
+if [ ${ipcpath:-iambogus} = "iambogus" ]; then
+    echo "A path to your IPC installation is required!"
+    usage
+fi
+
+# If sysvonly, don't allow nosysv
+#if [ $sysvonly = 1 && $sysv = 0 ]; then
+if [ $sysvonly ]; then
+   # Yeah, I can't make && work quickly.  <sigh>
+   if [ $sysv = 0 ]; then
+    echo "ERROR: --sysvonly and --nosysv detected!  You can't have it both ways!"
+    usage
+   fi
+fi
+
+
+echo "Okay, I have the following values:"
+echo "Source prefix:          $prefix"
+echo "GCC prefix:             $gccpath"
+echo "Binary prefix:          $bindir"
+echo "Install SysV?           $sysv"
+echo "ONLY install SysV?      $sysvonly"
+echo "SysV prefix:            $sysvprefix"
+echo "Use su instead of sudo? $nosudo"        
+echo "Build client?           $client"
+echo "Real install?           $install"
+echo "IPC path:               $ipcpath"
+echo "Launch mode:            $mode"
+echo "User to run as:         $user"
+echo "Prelaunch file:         $prelaunchfile"
+echo "Prelaunch shell:        $prelaunchshell"
+echo "Centralhost:            $centralhost"
+echo "Default config:         $defaultconfig"
+
+
+if [ $sysvonly -eq 0 ]; then
+
+####################################
+# 2) CREATE DIRECTORY STRUCTURE
+####################################
+# This isn't done if we're only installing sysv stuff
+
+    echo ""
+    echo "Creating directory tree..."
+
+    for dir in "$prefix/mraptor" "$prefix/mraptor/software" "$prefix/mraptor/software/bin" "$prefix/mraptor/software/external" "$prefix/mraptor/software/external/include" "$prefix/mraptor/software/external/lib" "$prefix/mraptor/software/external/lib/Linux" "$prefix/mraptor/software/external/bin" "$prefix/mraptor/software/external/bin/Linux" "$prefix/mraptor/software/include" "$prefix/mraptor/software/lib"
+    do
+        if ! [ -d $dir ] ; then
+            echo "   Creating $dir..."
+            if [ $install -eq 1 ] ; then
+                `mkdir -p $dir`
+            fi
+        fi
+    done
+
+    # Symlink linux2, Linux-2.2 and Linux-2.4 to Linux in external to avoid
+    # headaches
+    # External lib
+    ln -sf "./Linux" "$prefix/mraptor/software/external/lib/Linux-2.4"
+    ln -sf "./Linux" "$prefix/mraptor/software/external/lib/Linux-2.2"
+    ln -sf "./Linux" "$prefix/mraptor/software/external/lib/linux2"
+    # External bin
+    ln -sf "./Linux" "$prefix/mraptor/software/external/bin/Linux-2.4"
+    ln -sf "./Linux" "$prefix/mraptor/software/external/bin/Linux-2.2"
+    ln -sf "./Linux" "$prefix/mraptor/software/external/bin/linux2"
+
+
+
+####################################
+# 3) Untar source
+####################################
+# This isn't done if we're only installing sysv stuff
+
+    echo "Untarring source tree from internal tarball..."
+    if [ $install -eq 1 ] ; then
+        lastline=`awk '/^__ARCHIVE_FOLLOWS__/ { print NR + 1; exit 0; }' $0`
+        
+        # take the archive portion of this file and pipe it to tar
+        tail +$lastline $0 | tar -xz -C $prefix/mraptor/software
+        if [ $? -ne 0 ] ; then
+            echo "Hmm, this is a bogus tarfile.  I don't know myself anymore!"
+            echo "Something went wrong when this version was released; please contact"
+            echo "  the people who supplied this file."
+            exit
+        fi
+
+        # Touch all the files to avoid problems on machines with funky clocks
+        # On second thought, they should fix their clock.  Leave this here as a
+        #  suggestion.
+        # find $prefix/mraptor/software/src -exec touch -c \{\} \;
+    fi
+
+####################################
+# 4) Install IPC links
+####################################
+# This isn't done if we're only installing sysv stuff
+
+    echo "Symlinking to IPC installation..."
+    # Link to toplevel ipc directory - all other links pass through this one
+    ln -sf "$ipcpath" "$prefix/mraptor/software/external/ipc" 
+    # Include link
+    ln -sf "../ipc/include" "$prefix/mraptor/software/external/include/ipc" 
+    # Library link - prefer Linux, then relevant Linux-<major.minor>
+    if [ -d "$ipcpath/lib/Linux" ] ; then
+        ln -sf "../../ipc/lib/Linux/libipc.a" "$prefix/mraptor/software/external/lib/Linux/libipc.a"
+    else
+        # Figure out major/minor string
+        verstr=`uname -r | sed 's/\([0-9]\.[0-9]\).*$/\1/'`
+        if [ -d "$ipcpath/lib/Linux-$verstr" ] ; then
+            ln -sf "../../ipc/lib/Linux-$verstr/libipc.a" "$prefix/mraptor/software/external/lib/Linux/libipc.a"
+        else
+            echo "ERROR: Unable to find a valid IPC installation (libraries) at $ipcpath!"
+            exit
+        fi
+    fi
+
+    # Binary link - prefer Linux, then relevant Linux-<major.minor>
+    if [ -d "$ipcpath/bin/Linux" ] ; then
+        ln -sf "../../ipc/bin/Linux/central" "$prefix/mraptor/software/external/bin/Linux/central"
+    else
+        # Figure out major/minor string
+        verstr=`uname -r | sed 's/\([0-9]\.[0-9]\).*$/\1/'`
+        if [ -d "$ipcpath/bin/Linux-$verstr" ] ; then
+            ln -sf "../../ipc/bin/Linux-$verstr/central" "$prefix/mraptor/software/external/bin/Linux/central"
+        else
+            echo "WARNING: Unable to find a valid IPC installation (binaries) at $ipcpath!"
+            echo "         Installation will continue; this may cause trouble at runtime, tho."
+        fi
+    fi
+
+
+####################################
+# 5) Build binaries
+####################################
+# This isn't done if we're only installing sysv stuff
+
+    echo "Building binaries..."
+    if [ $install -eq 1 ] ; then
+        cd $prefix/mraptor/software/src/microraptor
+        # Modify the makefile appropriately
+        if [ $client -eq 1 ] ; then
+            sed s/^SUBDIRS.*$/SUBDIRS\ =\ common\ rcl\ daemon\ ttyclient\ client/ Makefile > Makefile.sed
+        else
+            sed s/^SUBDIRS.*$/SUBDIRS\ =\ common\ rcl\ daemon\ ttyclient/ Makefile > Makefile.sed
+        fi
+        # Move the .sed file back over the original... Not terribly elegant,
+        #  but it works.
+        mv Makefile.sed Makefile    
+        
+        # If we have a gcc path, use it.
+        if [ ${#gccpath} -ne 0 ] ; then
+            # New (FIRE-like) makefiles
+            sed "s|/usr/bin/gcc|${gccpath}/gcc|" Build/Platforms/generic.mak > Build/Platforms/generic.mak.sed
+            mv Build/Platforms/generic.mak.sed Build/Platforms/generic.mak
+            sed "s|/usr/bin/g++|${gccpath}/g++|" Build/Platforms/generic.mak > Build/Platforms/generic.mak.sed
+            mv Build/Platforms/generic.mak.sed Build/Platforms/generic.mak
+            
+            # Old makefiles
+            sed "s|^CC = g++|CC = ${gccpath}/g++|" Makerules/Makefile.head > Makerules/Makefile.head.sed
+            mv Makerules/Makefile.head.sed Makerules/Makefile.head
+            sed "s|^CC_linux2 = /usr/bin/g++|CC_linux2 = ${gccpath}/g++|" Makerules/Makefile.head > Makerules/Makefile.head.sed
+            mv Makerules/Makefile.head.sed Makerules/Makefile.head
+            
+        fi
+
+        # atacama_env is tcsh and pretty darn simple - copy the relevant foo here
+        # Skipping CVS variables; this install script comes with a tarball
+        export ATACAMA_MEMBERS_DIR=$prefix/mraptor
+        export RELEASE=1
+        export PROJECT=atacama
+        export PATH=$PATH:$ATACAMA_MEMBERS_DIR/software/bin/linux2:$ATACAMA_MEMBERS_DIR/software/external/bin/Linux
+        make -s install
+        if [ $? -ne 0 ] ; then
+            echo "Build failed - doh!  Fix the problems and rerun this script, please."
+            exit
+        fi
+    fi
+
+    echo "Chowning and chgrping build tree to $user..."
+    cd $prefix
+    chown -R $user mraptor
+    maingrp=`groups $user | cut --delimiter=" " -f 3`
+    chgrp -R $maingrp mraptor
+
+####################################
+# 6) Install binaries
+####################################
+# This isn't done if we're only installing sysv stuff
+
+    # BUGCHECK: This won't handle the Cygwin/NT case in Makefile.head
+    host_os=`uname -s | tr '[A-Z]' '[a-z]' | sed 's/[0-9]*$$//'`
+    host_ver=`uname -r | tr '[A-Z]' '[a-z]' | sed 's/\..*//'`
+    mrapbin="$prefix/mraptor/software/bin/${host_os}${host_ver}"
+
+    if [ $mrapbin != $bindir ] ; then
+        echo "Installing binaries and wrapper scripts..."
+
+        # Make printConfigFile.perl executable
+        pcfDir="$prefix/mraptor/software/src/microraptor/daemon"
+        chmod a+x ${pcfDir}/printConfigFile.perl
+        # If a default config exists, tack on the path to printConfigFile.perl
+        if [ ${defaultconfig:-iambogus} != "iambogus" ] ; then
+            # Use ctrl+a as a sed delimiter
+            ca=`echo 'a' | tr 'a' '\001'`
+            sed "s${ca}^\(@INC = split /:/, "'$'"ENV{PATH};\)${ca}\1"'\
+'"unshift(@INC, '${pcfDir}');${ca}" ${defaultconfig} > ${defaultconfig}.sed
+
+            mv ${defaultconfig}.sed $defaultconfig
+        fi
+
+        if ! [ -d $bindir ] ; then
+            echo "Target binary directory ${bindir} does not exist; creating..."
+            mkdir -p $bindir
+        fi
+        if [ $install -eq 1 ] ; then
+            # Mraptord binary - symlink so subsequent rebuilds propagate
+            ln -s $mrapbin/mraptord $bindir/mraptord
+            # Mraptord wrapper
+            echo "#!/bin/bash" > $mrapbin/mraptordw
+            echo "export CENTRALHOST=$centralhost" >> $mrapbin/mraptordw
+            if [ ${prelaunchfile:-iambogus} != "iambogus" ] ; then
+                echo -n "$prelaunchshell -c \"source $prelaunchfile ; " >> $mrapbin/mraptordw
+            fi
+            echo -n "$bindir/mraptord " >> $mrapbin/mraptordw
+            if [ ${defaultconfig:-iambogus} != "iambogus" ] ; then
+                echo -n "-c $defaultconfig " >> $mrapbin/mraptordw
+            fi
+            echo -n "$@ >& /tmp/mraptordLog &" >> $mrapbin/mraptordw
+            if [ ${prelaunchfile:-iambogus} != "iambogus" ] ; then
+                echo "\"" >> $mrapbin/mraptordw
+            fi
+            echo "" >> $mrapbin/mraptordw
+            chmod a+x $mrapbin/mraptordw
+
+            # Claw binary - symlink so subsequent rebuilds propagate
+            ln -s $mrapbin/claw $bindir/claw
+            # Claw wrapper
+            echo "#!/bin/bash" > $mrapbin/claww
+            echo "export CENTRALHOST=$centralhost" >> $mrapbin/claww
+            echo "$bindir/claw $@" >> $mrapbin/claww
+            chmod a+x $mrapbin/claww
+        fi
+    fi
+
+fi # End "if nosysv" clause
+
+####################################
+# 7) Set up SysV stuff
+####################################
+
+if [ $sysv -eq 1 ] ; then
+    echo "Installing SysV startup scripts..."
+    # Use ctrl+a as a sed delimiter
+    ca=`echo 'a' | tr 'a' '\001'`
+    # Copy startup script
+    if [ $install -eq 1 ] ; then       
+        cp $prefix/mraptor/software/src/microraptor/scripts/mraptord.sysv $sysvprefix/init.d/mraptord
+        # Replace variables we know about in the start script
+        # WARNING: Because I can't put a $ at the end of the match string, due to using
+        #          a variable as the delimeter, these will match all assignments to these
+        #          variables...  For now, that's okay, but could bite us if we change mraptord.sysv
+        # Do the nasty temp file thing for each of these.  <sigh>
+        sed "s${ca}^\(centralProg=\)${ca}\1${prefix}/mraptor/software/external/bin/Linux/central${ca}" ${sysvprefix}/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+        sed "s${ca}^\(mraptordProg=\)${ca}\1${mrapbin}/mraptord${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+        sed "s${ca}^\(mraptordConfig=\)${ca}\1${defaultconfig}${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+        sed "s${ca}^\(centralhost=\)${ca}\1${centralhost}${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+        sed "s${ca}^\(user=\)${ca}\1${user}${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+        sed "s${ca}^\(stance=\)${ca}\1${mode}${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord        
+
+        sed "s${ca}^\(prelaunchfile=\)${ca}\1${prelaunchfile}${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+        sed "s${ca}^\(prelaunchshell=\)${ca}\1${prelaunchshell}${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+        mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+	# Fix su vs sudo thing
+	if [ $nosudo -eq 1 ] ; then
+	    sed "s${ca}sudo -H -u \$user -s \$prelaunchshell${ca}su - \$user -c${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+	    mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+
+	    sed "s${ca}sudo -H -u \$user${ca}su - \$user -c${ca}" $sysvprefix/init.d/mraptord > $sysvprefix/init.d/mraptord.sed
+	    mv $sysvprefix/init.d/mraptord.sed $sysvprefix/init.d/mraptord
+	fi
+
+        chmod a+x ${sysvprefix}/init.d/mraptord
+	echo "chmod a+x ${sysvprefix}/init.d/mraptord"
+    fi
+    # Kill links
+    for dir in "$sysvprefix/rc0.d" "$sysvprefix/rc1.d" "$sysvprefix/rc6.d"
+    do 
+        echo "   $dir"
+        if [ $install -eq 1 ] ; then
+            ln -sf $sysvprefix/init.d/mraptord $dir/K02mraptord
+        fi
+    done 
+    # Start links
+    for dir in "$sysvprefix/rc2.d" "$sysvprefix/rc3.d" "$sysvprefix/rc4.d" "$sysvprefix/rc5.d"
+    do
+        echo "   $dir"
+        if [ $install -eq 1 ] ; then
+            ln -sf $sysvprefix/init.d/mraptord $dir/S98mraptord
+        fi
+    done
+fi
+
+
+echo "Congratulations, you've been raptorified!  A few things:"
+if [ $sysv -eq 1 ]; then
+    echo "  To change mraptord startup options, edit $sysvprefix/init.d/mraptord"
+fi
+if [ $client -eq 1 ]; then
+    echo "  Wrapper scripts for mraptord and claw were installed next to the binaries"
+    echo "    in $bindir.  Run mraptordw to automatically set CENTRALHOST and the config"
+    echo "    file; use claww to automatically set CENTRALHOST."
+else
+    echo "  A wrapper script for mraptord was installed next to the binary in"
+    echo "    $bindir.  Run mraptordw to automatically set "
+    echo "    CENTRALHOST and the config file."
+fi
+echo "  You'll probably want to be sure $bindir is in the path for everyone who will"
+echo "    be running any Microraptor components."
+echo "  That's it - enjoy!"
+
+
+exit 0
+
+# There must be NO blank lines after the below line, and it must be left-justified, or
+#  the extraction will fail
+__ARCHIVE_FOLLOWS__

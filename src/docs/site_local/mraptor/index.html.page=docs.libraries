@@ -1,0 +1,274 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Documentation of the libraries
+available for programmatic interfacing with the Microraptor daemons.">
+<h2>The Microraptor Libraries</h2>
+
+<div class="content">In addition to providing the daemon, a text-based
+client, and a graphical client, the Microraptor distribution includes
+C++ libraries to allow the user to build Microraptor process control
+into their own processes.  In fact, there's no reason a process under
+Microraptor control cannot itself use the Microraptor libraries to
+control other processes.  If you feel so inclined, this can even
+provide a rather... baroque alternative to exit(). ;-)</div>
+
+<div class="content">As of 1.1.0, the libraries and relevant headers
+are included in the RPM.  Three libraries are included: <span
+class="ic">libmrclient.a, libmrcommon.a,</span> and <span
+class="ic">librcl.a</span>, along with associated headers.  If
+installed via RPM, the libraries are installed to <span
+class="ic">/usr/lib</span>, while the headers reside in <span
+class="ic">/usr/include/mraptor</span>.  If you built from source, the
+libraries were compiled to the /lib/<OS-VERSION> subdirectory of your
+build directory; the headers are scattered throughout the source tree.
+Note that you'll also need libipc.a, from the <a
+href="http://www.cs.cmu.edu/~ipc">IPC distribution</a>.</div>
+
+<div class="content">As a rule, just link against all three libraries,
+and include headers as necessary.  An example of their usage can be
+found in the mrapMonitor utility, whose code resides in <a
+href="software/src/microraptor/utils/mrapMonitor.cc">utils/mrapMonitor.cc</a>.
+mrapMonitor is a (so far undocumented) utility, whose purpose is to
+monitor the status of a specified subset of Microraptor-controlled
+processes, and execute a specified script when they enter different
+states.  It's used in the <a
+href="http://www.roboceptionist.com">Roboceptionist</a> project to
+send email to the current maintainers if a process crashes.
+mrapMonitor is also a decent example of using RCL in your own code for
+general configuration purposes, since it uses an RCL file such as <a
+href="software/src/microraptor/utils/exampleWatchList.rcl">this
+one</a> to store its config.</div>
+
+<h3>Sample code</h3>
+
+<div class="content">mrapMonitor is a bit complicated for a starter
+example, however.  Thus, here's a stripped-down version of mrapMonitor
+to solely demonstrate MR_Comm (the Microraptor communications class),
+and a very small bit of RCL (the Microraptor datastructure
+library):</div>
+
+<div class="content"><b>Note:</b> The below hasn't yet been tested; I
+need to do so soon to make sure I didn't accidentally introduce any
+bugs. :-)  Also todo: change this to autokill anything that sends
+status, in order to demonstrate sending mraptor commands.</div>
+
+<pre class="indent">
+// We use IPC as our comm medium; this will need to be changed to
+// reflect your IPC installation.
+#include "ipc.h"
+// Assumes /usr/include is in your include path
+// clientComm.h defines MR_Comm, our comm class
+#include "mraptor/clientComm.h"
+// An RCLExp is the generic RCL object
+#include "mraptor/RCLExp.h"
+
+// You can prepend microraptor:: to everything, but that's a pain
+using namespace microraptor;
+using namespace std;
+
+// Define our Microraptor message handler; this will be connected via
+// a MR_Comm::subscribe_messages call in main()
+//
+// machName: the name of the machine the sending daemon/client is
+//   running on
+// text: a stringified RCL expression containing the message
+// client_data: a pointer passed in as the second argument to
+//   MR_Comm::subscribe_messages; this can be used for arbitrary data
+//   your message handler needs.  In this case, NULL.
+static void mrapMsgHnd(const string& machName, const string& text, void *client_data)
+{
+  // We could use the rcl namespace, but it's not worth it for one
+  // variable and one function call.
+  rcl::exp e;
+  try {
+    // Parse the message into an RCL object   
+    e = rcl::readFromString(text);
+    // And print it out; we won't do anything fancy here. :-)
+    cout << e << endl;
+  } catch(MRException err) {
+    cerr << "Failed to parse incoming message! " << err.text << endl;
+    return;
+  }
+}
+
+// The Big Enchilada
+int main(int argc, char** argv)
+{
+  // Initialize our comm object as a client
+  // This is often kept as a global, since it's normally also needed
+  // in our message handlers.
+  MR_Comm* mrap_comm = new MR_Comm("c"); // connect as client
+
+  // This defines the messages we'll send as well as connecting to
+  // central.  Note that this will use the CENTRALHOST variable to
+  // find central; see mrapMonitor.cc for how to use a commandline
+  // argument, a la --centralhost in claw, mrterm, and mraptord
+  mrap_comm->connect_to_central();
+
+  // Now, wait for a response to our ping message to make sure there
+  // is actually a daemon alive and connected to the same central
+  cerr << "Waiting to hear from the microraptor daemon..." << endl;
+  bool done = false;
+  // Listen for queued up messages
+  IPC_listenClear(0);
+  while(!done) {
+    // Connection_Hash is a typedef of hash_map in clientComm.h
+    // See mrapMonitor.cc for the FOR_EACH macro, which cleans up
+    // constructs like this immensely.
+    for(Connection_Hash::iterator chit = mrap_comm->get_connections().begin();
+        chit != mrap_comm->get_connections().end();
+        chit++) {
+      // See if we got a response from a daemon
+      if(MR_Comm::extract_type_from_module_name((*chit).first) == "d") {
+        done = true;
+        break;
+      }
+    }
+    if(!done) {
+      // Listen for messages
+      IPC_listenClear(250);
+    }
+  }
+  cerr << "Howdy, Mr. Microraptor!" << endl;
+
+  try {
+    // Set up mrapMsgHnd to handle all Microraptor messages
+    // The second argument is a void* which will be passed through to
+    //   mrapMsgHnd, and can be used for any data you wish, such as a
+    //   pointer to our MR_Comm object.
+    // Note that multiple subscribe_messages calls are legal, but that
+    //   would be slightly odd, and definitely less efficient than
+    //   dispatching from a single one.
+    mrap_comm->subscribe_messages(mrapMsgHnd, NULL);
+    // Request that all status messages be sent to us
+    mrap_comm->send_message_all("sub status");
+  }
+  // Microraptor commands may throw MRExceptions
+  catch(MRException e) {
+    string errStr = "ERROR: ";
+    errStr += e.text;
+    cerr << errStr << endl;
+    exit(1);
+  }  
+
+  // Enter the (infinite) IPC main dispatch loop
+  IPC_dispatch();
+}
+</pre>
+
+<div class="content">And that's it!  Read through <a
+href="software/src/microraptor/ttyclient/clientComm.h">ttyclient/clientComm.h</a>
+for more on what you can do with MR_Comm, such as sending messages in
+addition to receiving them.  The various RCL headers in the rcl/
+directory are also useful reading.</div>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:23:36.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

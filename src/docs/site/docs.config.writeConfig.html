@@ -1,0 +1,503 @@
+<meta name="description" content="Configuring Microraptor to run your processes.">
+<h2>Writing Process Configuration Files</h2>
+
+<div class="content">The process configuration file is the meat (or,
+err, delicious meat-like soy product if you're vegetarian ;-) of
+configuring Microraptor.  It defines which processes will be run
+where, with what arguments, in what environment, and with what
+dependencies.  This is the file you will spend most of your
+Microraptor configuration time on.</div>
+
+<div class="content">A process config file is a textual representation
+of an <a href="./index.html?page=docs.guts#rcl">RCL</a> structure; the
+simplest form is merely a text file containing the RCL description of
+the processes.  However, for any nontrivial system, there is a
+significant amount of duplication between process configurations.  To
+make process config files easier to maintain, when loading a config
+the RCL library first checks for the shebang (<span
+class="ic">#!</span>) construct at the beginning of the file; if it's
+present, the config file is executed, and the file's output is used as
+the desired configuration.  This allows the user to write a Perl,
+shell, or any other sort of script which will output the final
+configuration on stdout.  See <a href="#configScripts">below</a> for
+more details.</div>
+
+<div class="content">That make any sense?  Don't worry about it; we'll
+ease into things.  In this section, we'll cover the following:</div>
+
+<ul>
+  <li><a href="#configBasics">Process config basics</a></li>
+  <li><a href="#configScripts">Using scripts as config files</a></li>
+  <li><a href="#configMerging">How config files are merged</a></li>
+  <li><a href="#configGotchas">Config file gotchas</a></li>
+  <li><a href="#configDebugger">Running processes under a debugger</a></li>
+  <li><a href="#configExamples">Config examples</a></li>
+</ul>
+
+<a name="configBasics">
+<h4>The Basics</h4>
+
+<div class="content">The basic process config file is the textual
+representation of an <a href="./index.html?page=docs.guts#rcl">RCL</a>
+expression.  The top-level struture is an anonymous hash, hence the
+enclosing curly braces around the below example.</div>
+
+<div class="content">This anonymous hash has two member elements: <span
+class="ic">groups</span> and <span class="ic">processes</span>. The
+<span class="ic">groups</span> element is written first by convention,
+and consists of a vector of mappings from group names to
+space-separated lists of processes.  In versions of Microraptor prior
+to 1.1.0, the first element of a group list may be <span
+class="ic">-p</span>, indicating that if the group is given the run
+command, the processes should execute in parallel; you may see this
+construct in older config files.  Beginning with 1.1.0, this is now
+the default and only option, and need not be explicitly specified.
+Serialization may be enforced only through the processes' <span
+class="ic">depends</span> option.  <span class="ic">groups</span> may
+be either a vector (e.g. enclosed in square brackets) or a hash
+(e.g. enclosed in curly braces).  We recommend using a vector, since
+it will preserve group order; this is important if you care what order
+the groups are displayed in Claw's process tree.
+</div>
+
+<div class="content">Note that comments are Perl-style: they begin
+with a hash mark ('#'), and continue to the next newline.  In Emacs
+and other editors with syntax highlighting and indentation, a mode
+compatible with Perl will work nicely with RCL.</div>
+
+<div class="content">The <span class="ic">groups</span> definition
+must be followed by a comma, after which the <span
+class="ic">processes</span> element is defined (again, this may be
+either a vector or a hash, as discussed above).  This element consists
+of a comma-separated list of processes, with the Microraptor-name
+(alias) for the process on the left of the <span class="ic">=></span>,
+and the process configuration on the right.  The process configuration
+is itself a hash, with 11 valid elements.  See the <a
+href="./index.html?page=docs.daemon#processConfig">&lt;process_config&gt;</a>
+documentation on the daemon doc page for details about the possible
+elements of the individual process config hash.  The only required
+element is the <span class="ic">cmd</span> entry, which specifies the
+commandline to execute for this process.</div>
+
+<div class="content">That's all there is to it!  There are many more
+available options in the individual process config hashes, but they're
+already explained in detail <a
+href="./index.html?page=docs.daemon#processConfig">here</a>.</div>
+
+<h5>Simple RCL configuration example</h5>
+
+<div class="content">Very similar to the <a
+href="./source/software/src/microraptor/daemon/simple.config">Simple</a>
+example below; this is a heavily commented barebones example of an RCL
+process configuration file:</div>
+
+<pre class="indent">
+
+{ # Begin anonymous top-level hash
+
+    # Define groups as space-separated process lists; these are purely
+    # for convenience.  Individual processes may be in multiple or no
+    # groups.  If no groups are needed, merely define groups as the
+    # empty vector:
+    #   groups => [ ],
+    # Note: you can use a hash (e.g. '{ }') instead, but the order of
+    # the groups will not be preserved.  This only matters if you care
+    # how the groups are ordered in Claw's process tree.
+    groups => [
+        all => "central a b c",
+        init => "central",
+        odd => "a c"
+    ],
+
+    # Define the processes themselves.  The process name on the left
+    # need not correspond to the binary being run, although it's often
+    # a good idea.
+    processes => [
+
+        # The only required element of the process hash is 'cmd',
+        # which defines the commandline for this process
+        central => { cmd="/home/line/projects/external/ipc-3.7.6/bin/Linux-2.4/central"},
+
+        # We may also define an 'env' hash, which will add the given
+        #   environment variables to the process' starting
+        #   environment.  The default environment consists of the
+        #   environment of the mraptord daemon; this is often modified
+        #   through the prelaunchfile directive in /etc/mraptord.conf.
+        # In addition, the ready string is used to determine when the
+        #   process can be considered to be started for purposes of
+        #   resolving dependencies.  Once the ready string appears
+        #   anywhere in the process' output, the process moves from
+        #   'starting' to 'running', and all processes dependent on it
+        #   start.
+	a => { cmd="./counter a", env={ COUNTER=xyz },
+	       ready=": 2"},
+
+        # The working directory may also be defined; a 'cd' will be
+        #   executed to this directory before 'cmd' is executed.  Note
+        #   that if your binary is in the working directoy, you will
+        #   need to precede its name with a './', unless the current
+        #   directory ('.') is in your path or the working_dir itself
+        #   is in your path.
+	b => { cmd="touch foo", working_dir=/tmp },
+
+        # A file to log the process' output to may be set; if not set,
+        #   the output is not logged.  %n will be replaced with the
+        #   process name ('c' in this case), and %u will be replaced
+        #   with a four-digit number guaranteed to make the filename
+        #   unique.  A new log is started every time the command is
+        #   executed.
+        # The 'depends' vector may also be defined; when a process
+        #   with dependencies is run, it is put in the pending state
+        #   while all of its dependencies are run, and only starts
+        #   execution once all processes it depends on have reached the
+        #   running state.  The vector is a comma-separated,
+        #   square-bracket-enclosed, list of quoted process names.
+	c => { cmd="bc", log_file="/tmp/bc/%n_%u.log",
+	       depends => ["a"] },
+
+    ] # End processes vector (again, it could be a hash)
+
+} # End anonymous top-level hash
+</pre>
+
+<a name="configScripts">
+<h4>Scripts as Process Config Files</h4>
+
+<div class="content">For any system of reasonable size, maintaining
+the process configuration file can quickly become a significant
+chore.  To ease this, Microraptor supports scriptable configuration
+files.  When loading a process configuration, the Microraptor programs
+examine the first line for the shebang (<span class="ic">#!</span>)
+construct: if it exists, the configuration file is executed, and its
+output is used instead of the raw contents of the file.</div>
+
+<div class="content">This allows you to make use of any scripting
+language you would like, as long as it outputs valid RCL syntax, as
+described above in <a href="#configBasics">The Basics</a>.  The
+authors of Microraptor prefer Perl, and have provided a helper script
+for this purpose (<a
+href="./source/software/microraptor/daemon/printConfigFile.perl">printConfigFile.perl</a>,
+which is installed in /usr/bin by the RPM).  If you choose to use a
+language other than Perl, we would recommend porting
+printConfigFile.perl, and would appreciate a copy for inclusion in
+future releases.</div>
+
+<div class="content">While your configuration script may take any
+form, the basic structure we follow is to calculate any common or
+derived values, define a default set of process configuration values,
+define the actual configuration hash, and finally print it using the
+<span class="ic">print_main</span> function provided by
+printConfigFile.perl.  Below is a simple, but heavily commented, Perl
+process configuration script.  A much more complex real-world example
+is the <a
+href="./source/software/src/microraptor/daemon/trestle.config">Trestle
+project configuration</a>.</div>
+
+<pre class="indent">
+#!/usr/bin/perl
+
+# Derive a few common directories.  Normally, this is a touch more
+# complex. :-) Note that this will be executed on the machine the
+# configuration file resides on, and in the working directory of the
+# process loading the file.  This may be either an mraptord, claw, or
+# mrterm.
+$bindir = `pwd` . "/bin";
+$datadir = `pwd` . "/logs";
+# So, if you load a configuration file via Claw's  "Load local config
+# file", $cfgHost will be the name of the machine *Claw* is running
+# on.  However, if you load the file from mraptord on startup, or use
+# Claw's "Load remote config file" option, the host will be the name
+# of the daemon's machine.
+$cfgHost = `hostname -s`;
+
+# Default setup for all processes.  We omit default values for 'cmd',
+# 'depends', 'kill_cmd', 'backup_kill_cmd', 'backup_kill_delay', and
+# 'stdout_wait_for_end_of_line' because there are either no reasonable
+# defaults, or nondefault values are very rarely used.
+%d = (
+       host => "fuhost",
+       working_dir = $bindir,
+       env => {
+          CENTRALHOST => $cfgHost,
+          DISPLAY => "$cfgHost:0.0"
+       },
+       ready => "Ready",
+       log_file => "${datadir}/%n_%u.log"
+      );
+
+# Main config.  print_main will translate any nested set of Perl
+# datastructures into valid RCL; however, for that RCL to be a valid
+# process configuration file the top-level structure ($MR_CONFIG in
+# this example; there's nothing special about the variable name
+) must be a hash containing two elements: 'groups' and
+# 'processes'.  See "The Basics" for more details.
+$MR_CONFIG =
+{
+   groups => [
+       grp1 => "baz bar boo",
+       grp2 => "foo baz"
+   ],      
+
+   processes => [
+       # Use the default setup, but override the ready string
+       central =>    { %d,
+                       cmd => "./central",
+                       ready => "Expecting 1 on port" },
+       # Use the default, and also set the depends vector
+       baz =>        { %d,
+                       cmd => "xpenguins",
+                       depends => ["foo"] },
+       # Unfortunately, there's not a clean way to merge with
+       # $d{"env"}, so if we want to change only one entry, we must
+       # replicate the remainder (CENTRALHOST,  in this case).
+       bar =>        { %d,
+                       cmd => "xroach",
+                       env => {
+                                 CENTRALHOST => $cfgHost,
+                                 DISPLAY => "bazHost:0.0"
+                              }
+                     },
+       # We must minimally set 'cmd'; we don't include it in the
+       # defalt because that would be silly.
+       boo =>        { %d,
+                       cmd => "xbill"},
+       # We don't need to use the default setup, either (and in fact
+       # can just have more than one default hash if we'd like).  Also
+       # note that in this case CENTRALHOST will *not* be set, unless
+       # it's set in mraptord's environment.
+       foo =>        { cmd => "claw --centralhost $cfgHost:1382",
+                       host => "bazHost",
+                       env => {
+                                DISPLAY => "bazHost:0.0"
+                       }
+                     },
+   ] # End processes vector
+} # End MR_CONFIG hash
+
+######################################################################
+# DO NOT EDIT BELOW THIS POINT
+# Well, actually, don't edit once you have it set up for your
+# environment :-)
+
+# Tell perl to look for printConfigFile.perl in the user's path
+@INC = split /:/, $ENV{PATH};
+# Add any additional places it should look for printConfigFile.perl
+unshift(@INC, '/afs/cs/project/dira/software/external/microraptor/software/bin/common');
+
+# Pull in the requisite functions
+require "printConfigFile.perl";
+
+# Print out the hash using RCL syntax
+&print_main($MR_CONFIG);
+</pre>
+
+<a name="configMerging">
+<h4>Merging Mechanism</h4>
+
+<div class="content">Although we recommend for your sanity that you
+maintain your entire system's configuration in one file, it is
+possible to break it up into multiple files, or even overlay an
+entirely new config on top of an old one.  Whenever multiple configs
+are loaded, they are merged into one coherent whole, which is used by
+all daemons.  This works well if there are no overlaps in the config
+files (e.g. the same process is not defined twice).  If there are
+overlaps, however, the conflicts must be resolved.</div>
+
+<div class="content">Basically, overlapping entries from config files
+loaded later overwrite entries from config files loaded earlier, in
+order to maintain a consistent configuration system-wide. In the case
+of poorly-written config files, this may result in a race condition
+depending on when each config file is loaded; this is one of the
+reasons we advocate a single config.  Also note that when you change a
+process' config through Claw or mrterm (e.g. use the <a
+href="./index.html?page=docs.daemon#set">set</a> command) what you are
+effectively doing is loading a one-entry config file, which is merged
+with the existing config to update the process in question.</div>
+
+<div class="content"><b>Note:</b> Since conflicts are resolved at the
+per-process level, there is currently no way to <i>remove</i> a
+process from the loaded configuration without restarting
+Microraptor.  This hasn't really bothered us, so we're unlikely to
+address it unless asked nicely to do so. :-)</div>
+
+<div class="content"><b>Note:</b> I've written this section
+off-the-cuff, and it may be more-or-less correct, or completely off
+base.  Trey, when you get a chance, correct me, eh?  Specifically,
+I'm unsure of whether overlapping process entries are replaced
+wholesale, or are individual fields merged? (e.g. if copy 1 of Process
+Foo defines working_dir, but a loaded-later copy 2 of Process Foo does
+not, is working_dir defined in the result?)</div>
+
+<a name="configGotchas">
+<h4>Gotchas</h4>
+
+<p> There are a few subtleties to writing Microraptor config files
+that are worth explicitly pointing out:
+
+<ul>
+  <li><div class="noindent">Because the configuration file is
+  process-centric, it is not possible to define two processes with the
+  same Microraptor-name, even if they're running on different
+  machines/daemons.  Note that this does not mean you can't run the same
+  binary twice: you just need to give it a different alias in your
+  process configuration file, like this:</div>
+
+<pre class="indent">
+{
+  groups => { },
+  processes => {
+    oil => { cmd="env", host="fubar" },
+    toxicWaste => { cmd="env", host="barfu" }
+  }
+}
+</pre>
+
+  <div class="noindent"><span class="ic">oil</span> and <span
+  class="ic">toxicWaste</span> will work just fine.  However, if you
+  had instead defined two <span class="ic">env</span> processes:</div>
+
+<pre class="indent">
+{
+  groups => { },
+  processes => {
+    # BAD!
+    env => { cmd="env", host="fubar" },
+    env => { cmd="env", host="barfu" }
+  }
+}
+</pre>
+
+  <div class="noindent">...you would not see your desired behavior.
+  Instead, while parsing the configuration file, Microraptor would <a
+  href="#configMerging">merge</a> the latter definition with the
+  former, resulting in a single <span class="ic">env</span> process
+  running on host <span class="ic">barfu</span>.</div>
+
+  </li>
+
+  <li><div class="noindent">The current working directory ('.') is often
+  not in your path; thus, if you set the working_dir of a process to
+  the directory its binary is contained in, your <span
+  class="ic">cmd</span> must be preceded by a './'.  While you can add
+  '.' to your path (for instance, in the prelaunchfile specified in <a
+  href="./source/software/src/microraptor/scripts/mraptord.rpm.conf.txt">/etc/mraptord.conf</a>),
+  we recommend against doing so, as it can cause strange problems down
+  the road.</div></li>
+
+  <li><div class="noindent">Ready strings are case- and space-sensitive:
+  if a process never moves from <span class="ic">starting</span> to
+  <span class="ic">running</span>, ensure that your ready string
+  actually corresponds to your process' output.  Beware last minute
+  typo-fixes to your processes' outputs! :-)</div></li>
+
+  <li><div class="noindent">Members of a group <b>used to be</b>
+  implicitly serialized, so if you have:</div>
+
+<pre>groups => [ foo => "bar baz"],
+processes => [ bar => { depends => ["baz"] }, baz => {}]
+  (rest of process config omitted for clarity)
+</pre>
+
+  <div class="noindent">then running the foo group will result in a
+  dependency cycle if you are running a version older than 1.1.0.
+  Beginning with 1.1.0, groups are implicitly run in parallel.  To
+  make bug-squashing easier, there is no option to achieve the old
+  serialize-all-members-of-a-group functionality; this can be achieved
+  through proper use of the processes' <span class="ic">depends</span>
+  configuration in a much more flexible manner.  If serialization of
+  groups is particularly important to you, please <a
+  href="./index.html?page=contact">contact us</a>, and we'll consider
+  adding it back in, although to be honest we'll probably just suggest
+  the use of appropriate <span class="ic">depends</span> clauses.</div>
+  </li>
+</ul>
+</p>
+
+<a name="configDebugger">
+<h4>Running Processes Under a Debugger</h4>
+
+<div class="content">Microraptor can run processes under gdb.  In the
+config for each process, there is an optional field 'debugger'.  Set its
+value to 'gdb' (or the full path to the gdb binary) to run the process
+under gdb.  No other debuggers are supported.</div>
+
+<div class="content">Considerations:</div>
+
+<ul>
+<li><p class="content">The binary specified in the 'cmd' field for the process
+     must be a valid absolute or
+  relative filename, <i>without</i> relying on the executable path.</p></li>
+
+<li><p class="content">When you run a process that is configured to use the debugger,
+  mraptord starts the debugger but <i>does not</i> issue the 'run' command to
+  gdb to start the process itself.  This is so that you can
+  give preliminary commands to gdb before the process is executed.  For example,
+  you can set up breakpoints before execution.</p></li>
+
+<li><p class="content">In order to begin execution under gdb, you have two alternatives.
+  First, you can issue the 'run' command to gdb manually through the stdin
+  interface in claw or mrterm.  Second, you
+  can prepend the 'run' command to the list of commands in the
+  'stdin_commands' field of the process config to start the process
+  automatically.</p></li>
+
+<li><p class="content">However you run the process, you do <i>not</i> need to specify command-line
+  arguments for gdb to pass on--you can use 'run' instead of <span class="ic">'run arg1
+  arg2'</span>.  This is because mraptord automatically sets the command-line
+  arguments for gdb to pass to the process using the gdb 'set
+  args' command.  For example, if the 'cmd' field of the process config
+  is set to <span class="ic">'mybinary arg1 arg2'</span>, then mraptord will send the command
+  <span class="ic">'set args arg1 arg2'</span> to gdb stdin.  This happens before any commands
+  in 'stdin_commands' are issued.</p></li>
+
+<li><p class="content">While debugging, you may want to send an interrupt to the process to
+  return control to gdb.  If you are using mrterm, this can be done
+  using the daemon command <span class="ic">'signal INT &lt;process_name&gt;'</span> (which properly
+  signals the process under gdb rather than gdb itself).  In
+  the future you may be able to type ctrl-C in the process stdin widget
+  in claw to send an interrupt.</p></li>
+
+<li><p class="content">A note on implementation, which might be helpful for tracking down mraptord
+  problems: When you run a process under a debugger, mraptord creates a
+  temporary symlink (named e.g. "/tmp/mrlinkULxKNv") to the process
+  binary specified in the 'cmd' field.  This is so that signals can be
+  sent to the process later using the 'killall' command with
+  the temporary symlink as a unique process name.  Mraptord should
+  automatically delete the symlink when the process exits.</p></li>
+</ul>
+
+<a name="configExamples">
+<h4>Examples</h4>
+<div class="content">Here are a few examples of working config files
+from src/microraptor/daemon/*.config, and one real-world configuration
+(the last is not yet included in the Microraptor distribution):</div>
+
+<ul>
+  <li><div><a
+  href="./source/software/src/microraptor/daemon/example.config">Example</a>:
+  Straightforward configuration example, using Perl.</div></li>
+
+  <li><div><a
+  href="./source/software/src/microraptor/daemon/simple.config">Simple</a>:
+  Barebones example in raw text; no Perl preprocessing.</div></li>
+
+  <li><div><a
+  href="./source/software/src/microraptor/daemon/depend.config">Depend</a>: Examples of dependencies, including dependency cycles and non-cycles.</div></li>
+
+  <li><div><a
+  href="./source/software/src/microraptor/daemon/stress_test.config">Stress
+  Test</a>: A config using test binaries in the daemon directory
+  to test mraptord and claw's limits; used during debugging.</div></li>
+
+  <li><div><a
+  href="./source/software/src/microraptor/daemon/test_cross_machine.config">Cross-Machine
+  Test</a>: An example of a multiple-host configuration file with
+  cross-machine dependencies.</div></li>
+
+  <li><div>The <a
+  href="./source/software/src/microraptor/daemon/trestle.config">Trestle
+  project's configuration</a>; this is a very complicated real-world
+  configuration file written in Perl spanning 6 machines and
+  controlling 28 processes.</div></li>
+
+</ul>

@@ -1,0 +1,42 @@
+Quick & Dirty: How to set up mraptord to run on boot
+
+In a Redhat system, the following lines go in your /etc/rc.local
+file.  You can try to integrate it into the whole SysV daemon scheme,
+but it was too much of a pain for me.  Other distros will have their
+own ways to integrate arbitrary commands into the boot sequence.
+
+We will run a copy of IPC's central on the nonstandard port 1382 for
+all mraptord-claw communications, leaving port 1381 free for the users
+to run their own central.  It is desirable to not have mraptord and
+user traffic over the same central to allow the users flexibility in
+restarting "their" central without killing the microraptor system.
+
+Assuming that /etc/rc.local is a tcsh script, add these lines to the
+machine that will ru:
+
+  set path = (. $path)
+  setenv CENTRALHOST myhostname:1382
+  # -lx -u ensures central doesn't block on input or output via stdin/stdout
+  sudo -H -u mraptor_user /path/to/IPC/bin/central -lx -u -p1382 >& /dev/null &
+  # Need -H to ensure that the home directory for mraptord gets changed, so that
+  #  mraptord accesses the correct .Xauthority
+  sudo -H -u mraptor_user /path/to/mraptord -c /path/to/config/file/my.config  >& /dev/null &
+
+
+On all other daemon machines, add the following to /etc/rc.local:
+
+  set path = (. $path)
+  setenv CENTRALHOST centralhostname:1382
+  # Need -H to ensure that the home directory for mraptord gets changed, so that
+  #  mraptord accesses the correct .Xauthority
+  sudo -H -u mraptor_user /path/to/mraptord >& /dev/null &
+
+You _can_ load a config file on startup for other daemons, but for
+your sanity a single centralized config is highly recommended.
+Additional config files will be merged in using microraptor's merging
+mechanism (which will be explained in detail in the main manual when
+we finish it).  Basically, overlapping entries from config files loaded
+later overwrite entries from config files loaded earlier, in order to
+maintain a consistent configuration system-wide.
+
+- Brennan Sellner, brennan+microraptor@cmu.edu

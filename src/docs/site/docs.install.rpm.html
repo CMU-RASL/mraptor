@@ -1,0 +1,90 @@
+<meta name="description" content="Instructions for installing
+Microraptor from binary RPMs.">
+<h2>RPM Installation</h2>
+
+<p>Installing Microraptor is just like installing any other RPM.  It
+doesn't depend on any other packages, although a copy of <a
+href="http://www.cs.cmu.edu/~ipc/">IPC's central</a> is needed on one
+of the machines which will be running the Microraptor daemon.  You can
+either install from the official tarball, or use our unofficial <a
+    href="./index.html?page=download#ipc">IPC RPM</a>.
+
+<ol>
+   <li class="spaced">Get the RPM(s) appropriate for your system and
+   needs from the <a href="./index.html?page=download">downloads
+   page</a>.  RPMs appropriate for the systems we (the developers) use
+   on a regular basis and/or have easy access to will be maintained
+   there; RPMs for all other systems will posted as they're provided
+   to us.  There are five RPMs available:
+      <ul>
+          <li><b>mraptor-server</b>: The mraptord server.  Install
+          this on any machine that you wish to control processes via
+          Microraptor.</li>
+          <li><b>mraptor-claw</b>: The GTK-based client.</li>
+          <li><b>mraptor-mrterm</b>: The limited text-based client.
+          If possible, stick with claw - it's easier to use and has
+          more functionality, although mrterm has its purposes.</li>
+          <li><b>mraptor-util</b>: An unsupported set of
+          mraptor-related utilities.  Use at your own risk.</li>
+          <li><b>mraptor-dev</b>: The headers and libraries needed to
+          programatically interface with the mraptor stysm.</li>
+      </ul>
+   </li>
+
+   <li class="spaced">If you've previously installed a mraptor RPM
+   from release 1.1.2 or earlier, save the config file and uninstall
+   it:
+       <pre>cp /etc/mraptord.conf /etc/mraptord.conf.old
+rpm -ev mraptor mraptor-server</pre>
+   If you won't be installing <i>mraptor-server</i>, there's no need
+   to save /etc/mraptord.conf.</li>
+
+   <li class="spaced">As root, install the RPM(s):
+       <pre>rpm -Uvh mraptor-&lt;component name&gt;-&lt;version number&gt;.rpm</pre>
+       If installing on a CMU-CS Facilitized machine, you'll likely
+       need to use the --nodeps option if rpm complains about missing
+       libgcc dependencies.  The gcc3 compiler is installed in
+       /usr/local, and *isn't* tied into the RPM system.  Quite
+       annoying - it breaks the dependencies, but will run just fine
+       if you force it to install.
+   </li>
+   <li> If you've installed <i>mraptor-server</i>:
+        <ol>
+           <li class="spaced">Configure the daemon, and write a config file for your
+                 processes: see the <a
+                 href="./index.html?page=docs.config">configuration
+                 page</a>.  The short version is:
+                 <ul>
+                     <li> Write a config, following <a
+                                  href="/source/software/src/microraptor/daemon/example.config">this example</a>.</li>
+                     <li> Modify /etc/mraptord.conf (<a
+        href="/source/software/src/microraptor/scripts/mraptord.rpm.conf">example</a>) to point to your config file and copy of IPC's <i>central</i>.</li>
+                 </ul>
+            </li>
+            <li class="spaced">Start up mraptord on every daemon machine as
+                 root (this will now happen automatically on boot):
+                 <pre>/etc/init.d/mraptord start</pre></li>
+        </ol>
+   </li>
+
+   <li class="spaced"> If you backed up /etc/mraptord.conf earlier,
+   and you just installed <i>mraptor-server</i>, restore your config
+   by either transcribing your settings into the new file by hand or
+   copying the old file over it wholesale:
+   <pre>mv /etc/mraptord.conf.old /etc/mraptord.conf</pre></li>
+
+   <li class="spaced"> If you've installed <i>mraptor-server</i>, but
+   don't want the daemon to automatically start up on this machine,
+   just <span class="ic">su; chkconfig mraptord off</span>.</li>
+
+   <li class="spaced">Run <a href="./index.html?page=docs.claw">claw</a> or <a
+   href="./index.html?page=docs.mrterm">mrterm</a> with the
+   appropriate CENTRALHOST settings to connect to the daemon.</li>
+   <li>Go wild!</li>
+</ol>
+</p>
+
+<p>Only install <i>mraptor-server</i> on machines that you'll actually
+be using it on.  Due to its nature, it does constitute a security
+risk, and should not be frivolously installed.</p>
+

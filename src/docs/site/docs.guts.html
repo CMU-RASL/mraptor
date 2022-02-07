@@ -1,0 +1,132 @@
+<meta name="description" content="The Programmer's Guide to
+Microraptor: the nitty gritty.">
+<h2>Microraptor's Guts</h2>
+
+<div class="content">Otherwise knows as the "Programmer's Guide": this
+page contains details of the underlying behaviors and protocols of the
+Microraptor system.  This is very likely completely useless to you,
+unless you're trying to debug Microraptor itself, or otherwise
+contribute to it.  The <a href="#rcl">RCL</a> documentation may be of
+some use writing config files.</div>
+
+<ul>
+  <li><a href="#comm">Client/daemon comm interface</a></li>
+  <li><a href="#rcl">RCL spec</a> (the underlying command
+  language)</li>
+</ul>
+
+<a name="comm">
+<h4> The Client/Daemon Communication Interface</h4>
+
+<div class="content">Each client/daemon pair can connect either
+through a pair of FIFOs, or through IPC messages (the IPC messages
+simulate a serial connection with an interface identical to the FIFO
+version).</div>
+
+<div class="content">The MR_Comm object defined in
+microraptor/ttyclient/clientComm.{h,cc} (<a
+href="./source/software/src/microraptor/ttyclient/clientComm.h">header</a>,
+<a
+href="./source/software/src/microraptor/ttyclient/clientComm.cc">source</a>)
+provides an abstract interface, so that modules can transparently use
+either communication method.</div>
+
+<div class="content">There are three message varieties used in the IPC
+backend:</div>
+<ul>
+  <li><b>mr_search_ping, format "string"</b>
+      <div class="content">Whenever a new client or daemon connects to
+      IPC, it sends an mr_search_ping message with its module name.
+      Clients' module names start with "c_", and daemon's module names
+      start with 'd_', so subscribers to the ping message can
+      determine which type the connecting module is.</div></li>
+  <li><b>mr_search_ack, format "string"</b>
+      <div class="content">When a module receives a ping message from
+      a module of a different type, it responds with an ack including
+      its module name.  The idea is that every time a new module
+      connects, it notifies other modules of its existence via ping,
+      and learns of their existence via ack.  This way, the order of
+      connection doesn't matter.</div></li>
+  <li><b>mr_&lt;module_name1&gt;_to_&lt;module_name2&gt;, format "string"</b>
+      <div class="content">After each pair of modules of different
+      types learn about each other, they simulate a serial connection
+      using a pair of message names for two-way communication.</div></li>
+</ul>
+
+<div class="content"><b>&lt;module_name&gt;</b>, by convention, is
+&lt;module_type&gt;_&lt;host_name&gt;_&lt;pid&gt;, where:
+  <div class="indent">
+    <b>&lt;module_type&gt;</b> is either "c" for client or "d" for
+    daemon.<br>
+    <b>&lt;host_name&gt;</b> is the short form of the host
+    the module is running on.  For example, on <span
+    class="ic">sputnik.frc.ri.cmu.edu</span>, &lt;host_name&gt; is
+    <span class="ic">sputnik</span>.<br>
+    <b>&lt;pid&gt;</b> is the module's process id.
+  </div>
+</div>
+
+  
+<div class="content"><a
+href="./source/software/src/microraptor/ttyclient/mrterm.cc">mrterm.cc</a>
+and <a
+href="./source/software/src/microraptor/daemon/raptorDaemon.cc">raptorDaemon.cc</a>
+provide the canonical examples of using the MR_Comm object.</div>
+
+<a name="rcl">
+<h4>The Underlying Command Language (RCL)</h4>
+
+<div class="content">Here is a (very) terse explanation of the syntax
+employed by the command language RCL.  RCL is used for all
+communications within Microraptor, as well as for the specification of
+<a href="./index.html?page=docs.config.writeConfig">config
+files</a></div>
+
+<ul>
+  <li>A <b>command</b> is a space-separated vector of expressions</li>
+
+  <li> An <b>expression</b> can be a number, a string, a bool, or a compound data
+  structure (a hash or vector)</li>
+
+  <li><b>Compound data structures</b> can be nested to arbitrary depth</li>
+
+  <li>Specific data types:
+    <ul>
+      <li><b>Space-separated vector</b> (only available at the top level, cannot be
+          nested within other compound data types); syntax is:
+          <span class="ic">exp1 exp2 exp3</span></li>
+
+      <li><b>Vector</b> syntax: <span class="ic">[exp1, exp2, exp3]</span></li>
+
+      <li><b>Hash</b> syntax: <span class="ic">{key1=val1, key2=val2}</span></li>
+
+      <li><b>String</b> syntax: strings can be left unquoted if they do not
+      contain special characters, and cannot be confused with numbers.
+      In particular, most file names are ok unquoted.  If you need
+      special characters, quote the string, and use backslash escape
+      sequences if necessary, as in C (e.g., \n, \", \007, etc).  A
+      recent addition is the ability to write a '%' followed by an
+      unescaped string as the last expression in a command.</li>
+
+      <li><b>Numbers</b>: Any decimal formats like -1.0e+7 or 900 are acceptable.</li>
+      <li><b>Boolean</b> syntax: 'true' or 'false'</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="content">Here are a few examples of grammar accepted by the parser (not all
+are commands understood by the daemon):</div>
+
+<pre class="indent">
+  set ctr {cmd=/bin/ctr, env={DISPLAY=":0.0"}}
+  print_list [1, 2, /foo]
+  "a \"quoted string\" with some special characters\n"
+  some_nested_data { x=[ 1, 2, {a=0, b="foo"} ], y=1 }
+  stdout ctr 1045619679.072521 x %this is an unescaped string, "hello"
+</pre>
+
+<div class="content">Further examples can be found in the sample
+process configuration files in the <a
+href="./index.html?page=docs.config.writeConfig#configExamples">examples
+section</a> of the <a href="./index.html?page=docs.config">Config
+page</a>.</div>

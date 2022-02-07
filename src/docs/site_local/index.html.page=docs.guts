@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title></title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="The Programmer's Guide to
+Microraptor: the nitty gritty.">
+<h2>Microraptor's Guts</h2>
+
+<div class="content">Otherwise knows as the "Programmer's Guide": this
+page contains details of the underlying behaviors and protocols of the
+Microraptor system.  This is very likely completely useless to you,
+unless you're trying to debug Microraptor itself, or otherwise
+contribute to it.  The <a href="index.html.page=docs.guts#rcl">RCL</a> documentation may be of
+some use writing config files.</div>
+
+<ul>
+  <li><a href="index.html.page=docs.guts#comm">Client/daemon comm interface</a></li>
+  <li><a href="index.html.page=docs.guts#rcl">RCL spec</a> (the underlying command
+  language)</li>
+</ul>
+
+<a name="comm">
+<h4> The Client/Daemon Communication Interface</h4>
+
+<div class="content">Each client/daemon pair can connect either
+through a pair of FIFOs, or through IPC messages (the IPC messages
+simulate a serial connection with an interface identical to the FIFO
+version).</div>
+
+<div class="content">The MR_Comm object defined in
+microraptor/ttyclient/clientComm.{h,cc} (<a
+href="source/software/src/microraptor/ttyclient/clientComm.h">header</a>,
+<a
+href="source/software/src/microraptor/ttyclient/clientComm.cc">source</a>)
+provides an abstract interface, so that modules can transparently use
+either communication method.</div>
+
+<div class="content">There are three message varieties used in the IPC
+backend:</div>
+<ul>
+  <li><b>mr_search_ping, format "string"</b>
+      <div class="content">Whenever a new client or daemon connects to
+      IPC, it sends an mr_search_ping message with its module name.
+      Clients' module names start with "c_", and daemon's module names
+      start with 'd_', so subscribers to the ping message can
+      determine which type the connecting module is.</div></li>
+  <li><b>mr_search_ack, format "string"</b>
+      <div class="content">When a module receives a ping message from
+      a module of a different type, it responds with an ack including
+      its module name.  The idea is that every time a new module
+      connects, it notifies other modules of its existence via ping,
+      and learns of their existence via ack.  This way, the order of
+      connection doesn't matter.</div></li>
+  <li><b>mr_&lt;module_name1&gt;_to_&lt;module_name2&gt;, format "string"</b>
+      <div class="content">After each pair of modules of different
+      types learn about each other, they simulate a serial connection
+      using a pair of message names for two-way communication.</div></li>
+</ul>
+
+<div class="content"><b>&lt;module_name&gt;</b>, by convention, is
+&lt;module_type&gt;_&lt;host_name&gt;_&lt;pid&gt;, where:
+  <div class="indent">
+    <b>&lt;module_type&gt;</b> is either "c" for client or "d" for
+    daemon.<br>
+    <b>&lt;host_name&gt;</b> is the short form of the host
+    the module is running on.  For example, on <span
+    class="ic">sputnik.frc.ri.cmu.edu</span>, &lt;host_name&gt; is
+    <span class="ic">sputnik</span>.<br>
+    <b>&lt;pid&gt;</b> is the module's process id.
+  </div>
+</div>
+
+  
+<div class="content"><a
+href="source/software/src/microraptor/ttyclient/mrterm.cc">mrterm.cc</a>
+and <a
+href="source/software/src/microraptor/daemon/raptorDaemon.cc">raptorDaemon.cc</a>
+provide the canonical examples of using the MR_Comm object.</div>
+
+<a name="rcl">
+<h4>The Underlying Command Language (RCL)</h4>
+
+<div class="content">Here is a (very) terse explanation of the syntax
+employed by the command language RCL.  RCL is used for all
+communications within Microraptor, as well as for the specification of
+<a href="index.html.page=docs.config.writeConfig">config
+files</a></div>
+
+<ul>
+  <li>A <b>command</b> is a space-separated vector of expressions</li>
+
+  <li> An <b>expression</b> can be a number, a string, a bool, or a compound data
+  structure (a hash or vector)</li>
+
+  <li><b>Compound data structures</b> can be nested to arbitrary depth</li>
+
+  <li>Specific data types:
+    <ul>
+      <li><b>Space-separated vector</b> (only available at the top level, cannot be
+          nested within other compound data types); syntax is:
+          <span class="ic">exp1 exp2 exp3</span></li>
+
+      <li><b>Vector</b> syntax: <span class="ic">[exp1, exp2, exp3]</span></li>
+
+      <li><b>Hash</b> syntax: <span class="ic">{key1=val1, key2=val2}</span></li>
+
+      <li><b>String</b> syntax: strings can be left unquoted if they do not
+      contain special characters, and cannot be confused with numbers.
+      In particular, most file names are ok unquoted.  If you need
+      special characters, quote the string, and use backslash escape
+      sequences if necessary, as in C (e.g., \n, \", \007, etc).  A
+      recent addition is the ability to write a '%' followed by an
+      unescaped string as the last expression in a command.</li>
+
+      <li><b>Numbers</b>: Any decimal formats like -1.0e+7 or 900 are acceptable.</li>
+      <li><b>Boolean</b> syntax: 'true' or 'false'</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="content">Here are a few examples of grammar accepted by the parser (not all
+are commands understood by the daemon):</div>
+
+<pre class="indent">
+  set ctr {cmd=/bin/ctr, env={DISPLAY=":0.0"}}
+  print_list [1, 2, /foo]
+  "a \"quoted string\" with some special characters\n"
+  some_nested_data { x=[ 1, 2, {a=0, b="foo"} ], y=1 }
+  stdout ctr 1045619679.072521 x %this is an unescaped string, "hello"
+</pre>
+
+<div class="content">Further examples can be found in the sample
+process configuration files in the <a
+href="index.html.page=docs.config.writeConfig#configExamples">examples
+section</a> of the <a href="index.html.page=docs.config">Config
+page</a>.</div>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:29:28.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

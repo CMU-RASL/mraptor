@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+
+$delay = shift @ARGV;
+$delay_usec = $delay*1e+6;
+$| = 1;
+while (1) {
+    system("usleep $delay_usec\n") and
+      die "ERROR: couldn't usleep $delay_usec\n";
+    print "printalot $delay ---------------------------------\n";
+}

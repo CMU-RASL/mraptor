@@ -1,0 +1,126 @@
+#!gmake 	# Tell emacs about this file: -*- Makefile -*-  
+# $Id: Makefile.old,v 1.1 2003/10/05 02:57:06 trey Exp $
+#
+# PROJECT:      FIRE Architecture Project
+# DESCRIPTION:  
+
+######################################################################
+# DO NOT MODIFY THIS HEADER SECTION
+
+CHECKOUTDIR := $(shell pwd | perl -e '$$stem = ""; for (1..5) { $$dir = $$stem."src"; if (-d $$dir) { chop $$stem; print "$$stem"; exit 0; } $$stem = "../$$stem"; } print "*** COULD NOT FIND CHECKOUT DIR ***";')
+MAKERULESDIR := ../Makerules
+include $(MAKERULESDIR)/Makefile.head
+
+##############################################################################
+###                     BEGIN MODIFICATIONS BELOW!!!
+###     Use   "make Makefile.template.full"   to obtain an annotated template
+##############################################################################
+
+# If we're in Cygwin, say so to the source
+# This isn't the right way to do it, but a comparison of OS
+#   to Windows_NT failed... which I don't understand
+ifeq ($(OSTYPE),posix)
+  CFLAGS += -DCYGWIN
+endif
+
+# hack: make this work by linking software/external to fire/software/external
+CFLAGS += -I$(ATACAMA_MEMBERS_DIR)/software/external/include
+LFLAGS += -L$(ATACAMA_MEMBERS_DIR)/software/external/lib/Linux-2.4
+
+CFLAGS += -ftemplate-depth-40
+
+SUBDIRS =
+HEADERS =
+LIBSRCS = raptorDaemon.cc stdoutBuffer.cc
+LIBNAME = libmraptord.a
+BINSRCS = mraptord.cc
+ifneq (,$(TEST))
+BINSRCS += printalot.c # testStdoutBuffer.cc testpipe.cc 
+endif
+LOCALBINSRCS = 
+SCRIPTS = printConfigFile.perl
+MANPAGES =
+WEBPAGES =
+ALL_SRC_FILES = $(LIBSRCS) $(BINSRCS) $(LOCALBINSRCS)
+EXTRA_FILES_TO_CLEAN += *.tab.cc{,.h} *.yy.cc
+LIBRARIES = -lmrclient -lmrcommon -lrcl -lipc -lpthread -lutil
+
+###  Enter any binary-specific library dependencies like this:
+# LIBRARIES_pre_$(BDIR)/____$(BSUF) = -lX11
+
+include $(MAKERULESDIR)/Makefile.middle
+
+##############################################################################
+###  List all binary dependencies here
+###  e.g., $(BDIR)/____$(BINSUF):  $(ODIR)/____.o $(LIB)
+
+$(BDIR)/mraptord$(BINSUF): $(ODIR)/mraptord.o $(LIB)
+
+ifneq (,$(TEST))
+$(BDIR)/printalot$(BINSUF): $(ODIR)/printalot.o $(LIB)
+endif
+
+#$(BDIR)/testpipe$(BINSUF): $(ODIR)/testpipe.o $(LIB)
+
+#$(BDIR)/testStdoutBuffer$(BINSUF): $(ODIR)/testStdoutBuffer.o $(LIB)
+
+# ADD ANY SUBDIRS THAT NEED TO BE VISITED DURING A BUILD TO THE SUBDIRS LIST
+SUBDIRS := 
+
+######################################################################
+# $Log: Makefile.old,v $
+# Revision 1.1  2003/10/05 02:57:06  trey
+# switched to variant of FIRE makefile system
+#
+# Revision 1.15  2003/10/04 21:56:48  trey
+# tweaked things to eliminate the need for the common/overlap directory and libmrcommonoverlap.a
+#
+# Revision 1.14  2003/06/19 19:39:44  brennan
+# Made microraptor build system happy with Cygwin.
+#
+# Revision 1.13  2003/06/14 15:45:39  brennan
+# Conflict resolution.
+#
+# Revision 1.12  2003/03/28 17:38:15  trey
+# rearranged locations of files so that the atacama project can use rcl without causing namespace conflicts
+#
+# Revision 1.11  2003/03/17 00:52:09  trey
+# added printalot binary to test performance issues
+#
+# Revision 1.10  2003/02/26 15:48:35  trey
+# fixed problem with printConfigFile.perl needing to be in the same dir as the config file
+#
+# Revision 1.9  2003/02/24 16:30:21  trey
+# moved safeSystem into libmrclient in the ttyclient directory
+#
+# Revision 1.8  2003/02/19 10:18:55  trey
+# updated to use new clientComm version
+#
+# Revision 1.7  2003/02/16 02:31:10  trey
+# full initial command set now implemented
+#
+# Revision 1.6  2003/02/15 05:45:40  trey
+# added stdoutBuffer
+#
+# Revision 1.5  2003/02/14 05:57:13  trey
+# child stdin/stdout now have correct buffering properties
+#
+# Revision 1.4  2003/02/13 23:21:38  trey
+# moved Execute_Exception to safeSystem.h
+#
+# Revision 1.3  2003/02/13 22:41:30  trey
+# renamed files
+#
+# Revision 1.2  2003/02/05 22:50:21  trey
+# remote runner now uses rcl, at least a bit
+#
+# Revision 1.1  2003/02/05 21:41:36  trey
+# added makefile, a bit of cleanup
+#
+# Revision 1.1  2003/02/05 03:57:54  trey
+# initial atacama check-in
+#
+#
+
+
+

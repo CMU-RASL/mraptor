@@ -1,0 +1,7 @@
+#!/bin/bash
+
+gout=`ps auxww | grep mraptord | grep -v grep`
+
+if [ -z "$gout" ] ; then
+   /etc/init.d/mraptord restart
+fi

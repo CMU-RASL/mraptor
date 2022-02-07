@@ -1,0 +1,34 @@
+Here lie old todo items / notes that I'm not planning on implementing,
+but want to keep around for reference.
+----------------------------------------------------------------------
+
+  Socket stuff:
+   - add any process displays before socket foo in notebook
+   - subscribe to new window creation messages, to allow auto-swallowing
+     - Hmm.  So we need to get CreateNotify XEvents from the root
+       window.  Or not.  XLib manual says CreateNotify is generated
+       when _children_ are created.  Damn.  Thus, this will only be
+       generated from the root window.  Need some way to subscribe to
+       events from the root.  Really, need a way to get events from
+       another window.  Options:
+       - Use IPC's subscribeFD to get events from the root window
+       - Install GDK filter on XEvents
+       - Connect some sort of GTK signal handler to GDK_ROOT_WINDOW...
+       - Do straight X stuff a la on_swallow_window1_activate
+     - sometimes works, sometimes leaves skeleton window, sometimes
+       just resizes window (timing issue)
+              
+       Occasionaly GDK bad window error that crashes claw; not sure what
+       it's from:
+         Entering FD handler
+         Gdk-ERROR **: BadWindow (invalid Window parameter)
+           serial 12 error_code 3 request_code 20 minor_code 0
+       This seems to happen when you close an arbitrary window soon after
+       it appearing...  Maybe add some sort of "does this window still
+       exist" check?  It's a race condition...
+
+   - detect closing of window & do cleanup
+     - look at XLib stuff, or maybe GDK
+   - save geometry of windows when swallowed, to allow its restoration
+     after regurgitation
+

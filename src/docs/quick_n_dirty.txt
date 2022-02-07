@@ -1,0 +1,112 @@
+Hrm, someone impatient maybe?  Here's the quicklike install
+instructions; we assume a RedHat 7 or greater boot system and that
+you've grabbed the tarball off of the website.
+
+Scenario:
+  There are three computers on the robot: larry.r, mo.r, and curly.r.
+  There are two laptops that will be used as chase computers: bo.c and
+  luke.c
+
+Compile microraptor
+  Target: All systems.
+    The Microraptor source tree expects to be installed under a software/
+    directory.  You must create an external/ directory in software/ which
+    includes the IPC installation (potentially via symlinks to a
+    previously-installed copy):
+
+    * Choose a directory for your installation and do the following:
+
+      setenv ATACAMA_MEMBERS_DIR <your_dir>
+      mkdir $ATACAMA_MEMBERS_DIR/software
+
+    * Set up the external directory under software to include the IPC
+      installation.  An example of how to do this if you have access to the
+      FIRE project afs space:
+
+      cd $ATACAMA_MEMBERS_DIR/software
+      ln -s /afs/cs/project/fire/software/external external
+
+      (the requirement is that the following files be present)
+
+      software/external/lib/Linux-2.4/libipc.a
+      software/external/bin/Linux-2.4/central
+      software/external/include/ipc.h
+      (your kernel version may vary)
+
+    * Install the Microraptor source.  Pick one: grabbing it from CVS
+      or downloading the source tarball from
+      www.ciabuggy.org/brennan/mraptor.
+
+      CVS:
+        cd $ATACAMA_MEMBERS_DIR/software
+        setenv CVSROOT monk.frc.ri.cmu.edu:/user/atacama/software/master
+        cvs checkout src/microraptor
+        cvs checkout src/microraptor/atacama_env
+      Tarball:
+        Download tarball from www.ciabuggy.org/brennan/mraptor
+        cd $ATACAMA_MEMBERS_DIR/software
+        tar -xzf tarball.tgz        
+
+    * Pick up environment variables from atacama_env.
+
+      source $ATACAMA_MEMBERS_DIR/software/src/atacama_env
+
+    * Compile
+
+      If you don't want the executables, libraries, and headers
+      installed to $ATACAMA_MEMBERS_DIR/software/bin/<architecture>,
+      set the RELEASE_HOME environment variable.
+
+      cd $ATACAMA_MEMBERS_DIR/software/src/microraptor
+      gmake RELEASE=1 install
+
+      (this produces the following files, which should be in your path
+       if you rehash; note that compiling with RELEASE=1 removes -g
+       and adds -O3, resulting in much longer compile times but much
+       faster executables (esp. the GUI, claw))
+
+      software/bin/linux2/mraptord
+      software/bin/linux2/mrterm
+      software/bin/linux2/claw
+    
+Run daemon on boot with config file and start central
+  Target: larry.r (one robot machine, first to boot)
+
+  Insert the lines below into /etc/rc.local (assumes rc.local is in
+  tcsh format):
+
+    set path = (. $path)
+    setenv CENTRALHOST larry.r:1382
+    sudo -H -u mraptor_user /path/to/IPC/bin/central -lx -u -p1382 >& /dev/null &
+    sudo -H -u mraptor_user /path/to/mraptord -c /path/to/config/file/my.config  >& /dev/null &
+
+  where mraptor_user is a non-root (and privledge-restricted) user
+  that has the rights to run all programs you'll be controlling with
+  microraptor.
+
+Run daemon on boot
+  Target: mo.r and curl.r (rest of robot machines)
+
+  Insert the lines below into /etc/rc.local (assumes rc.local is in
+  tcsh format):
+
+    set path = (. $path)
+    setenv CENTRALHOST larry.r:1382
+    sudo -H -u mraptor_user /path/to/mraptord >& /dev/null &
+
+Run clients
+  Target: bo.c and luke.c (any machine that wants to connect)
+
+  setenv CENTRALHOST larry.r:1382
+  claw
+
+Note that we run a central on port 1382 (the standard is 1381) for all
+microraptor foo; if you use IPC as part of your system (and you should
+:), run your central on the standard port 1381; this way, microraptor
+will not interfere with your system whatsoever.
+
+And play!  See mraptor_manual.txt for details about everything.  It's
+not quite done yet with respect to claw (the GUI client), so skim it,
+but then just play with claw. :)
+
+-Brennan & Trey

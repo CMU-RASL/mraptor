@@ -1,0 +1,1491 @@
+# $Id: mraptor_manual.txt,v 1.20 2006/11/13 18:19:33 trey Exp $
+
+######################################################################
+THIS FILE IS OBSOLETE -- REFER TO THE HTML DOCUMENTATION INSTEAD!
+######################################################################
+
+[OBSOLETE!] MICRORAPTOR MANUAL [OBSOLETE!]
+
+  Trey Smith, Brennan Sellner, Chris Urmson
+  {trey,brennan+,curmson}@ri.cmu.edu
+
+CONTENTS
+
+- Introduction / History
+- Features
+- Installing Microraptor
+- Running Microraptor
+- Using the GUI client
+- Using the serial client
+- Writing configuration files
+- Running processes under a debugger
+- The daemon serial interface
+- Programmer's guide
+- Troubleshooting / Common Mistakes
+
+----------------------------------------------------------------------
+INTRODUCTION / HISTORY
+
+MicroRAPTOR: Micro Remote Activator Process To Obliterate Rover
+
+Microraptor is a remote process management system.  You run the
+Microraptor daemon on a remote host, then connect to it with a local
+client.  Using the client, you can command the daemon to run and kill
+processes, and communicate with each process's stdin/stdout.
+
+Microraptor is a replacement for the Startup tool, developed over
+several years at CMU.  Startup is similarly used for process management.
+Startup reads a config file with details about each process, such as the
+command to run to start it, the host it should run on, environment
+variable settings, etc.  It uses this information to spawn one xterm
+window per process, and in each xterm, a shell command is used to
+execute the process, either locally by simple execution, or remotely via
+ssh.  Startup also has limited support for killing processes, using the
+shell to invoke killall.
+
+The key flaw in the design of Startup is that the xterms and the
+processes running within them maintain no connection to the Startup
+program itself (Startup exits after spawning them).  This leads to
+several problems:
+
+- Startup cannot detect when its processes exit.
+
+- Startup xterms must be opened at the beginning of the run if the user
+  wants to have access to process stdin/stdout.  They cannot be closed
+  without killing the attached process.
+ 
+- Startup doesn't know the pids of its processes, so it cannot kill them
+  directly.  Instead uses the killall command provided by Linux, which
+  has sometimes been unreliable.
+
+- Startup has no way of managing the bandwidth between remote processes
+  and the local host, since each process sends its output over a
+  separate ssh connection.  Users will typically want to monitor only
+  a few processes at a time, and different processes may be of interest
+  at different times in the run.  When working over a low-bandwidth
+  link, it is important to send only the data of interest.
+
+- There is no way for multiple users on different machines to access
+  the data from the same remote process.
+
+Microraptor is designed to overcome all of these problems.  The
+Microraptor GUI client can attach and detach xterm-like windows from the
+stdin/stdout of processes managed by the daemon.  Multiple clients can
+connect to the same daemon.  In short, the great power and flexibility of
+Microraptor makes the writer of Startup look like a real chump.  Read on
+to learn more about using this wonderful system.
+
+[About the name Microraptor: recently (2003) a new dinosaur species
+was discovered in China.  The new species has feathers on all four
+limbs, suggesting it could glide between trees like a flying squirrel.
+This find is a key point in a long-standing debate about how flight
+evolved in dinosaurs.  The species was named Microraptor gui, in honor
+of Chinese paleontologist Gu Zhiwei.  The rest is history.]
+
+----------------------------------------------------------------------
+FEATURES
+
+- Manage processes across multiple machines
+- View status of all processes at a glance
+- Interact with process consoles
+  - Tabbed windows help manage clutter when there are many processes
+  - Can subscribe/unsubscribe to process console output dynamically,
+    which helps when processes are running on a remote host with a
+    low-bandwidth connection
+- Specify how to run processes using a flexible config file format
+- Process dependencies can be specified
+  - Running process X automatically runs all processes X depends on
+  - Detection of when a process is "ready" based on its console output
+  - Dependency links can span processes on multiple hosts
+- Log process console output
+- Multiple clients can view/manage the same processes
+  - Clients automatically synchronize their configuration, so only
+    one client needs to load a configuration file
+
+----------------------------------------------------------------------
+INSTALLING MICRORAPTOR
+
+When installing Microraptor, you have two options: installing the RPMs
+and building it yourself.  We _highly_ recommend installing from the
+RPMs, since building it can be a bit hairy.  If you're feeling
+masochistic, or aren't using an RPM-capable system, see the build
+instructions below.
+
+Regardless, you need a working IPC installation before installing
+Microraptor.  At some point, we may start packaging IPC in RPMs, but
+for now you're on your own.  See
+http://www-2.cs.cmu.edu/afs/cs/project/TCA/www/ipc/ipc.html for the
+latest version of IPC.  It's relatively easy to build, so don't worry
+about it too much. :-)
+
+------------------
+* The RPM Way
+
+Binary RPMs for the systems we (the developers) use on a regular basis
+can be found on the Microraptor webpage (currently
+http://gs295.sp.cs.cmu.edu/brennan/mraptor).  If one of these works
+for you, do a little dance!  Download it and install the sucker (if
+you're not familiar with using RPM, the short version is: become root,
+then `rpm -ivh <rpmfilename>').  You'll now need to modify
+/etc/mraptord.conf to point to your configuration file and copy of
+IPC's central program.  Once that's done, mraptord has been installed
+as a service on your machine: it will start up automatically on boot,
+and can be controlled via the /etc/init.d/mraptord script, just like
+any other service.  You'll find the client at /usr/bin/claw.
+
+If a binary RPM doesn't exist for your system, but you do have RPM
+available, your next best bet is to build a binary RPM from the source
+RPM.  To do so:
+
+   0. Grab the latest mraptor-*.src.rpm from the webpage.
+   1.  "rpm --rebuild mraptor-*.src.rpm" as root. Note that on
+       some newer RedHat systems it's "rpmbuild" instead of "rpm". The
+       IPC headers and libraries need to be findable. I'll eventually
+       get a source RPM of IPC up and running; in the meantime,
+       symlink /usr/lib/libipc.a to your IPC library and
+       /usr/include/ipc to the /include subdirectory of your IPC
+       installation. If it asks about sudo or su, just enter "1" -
+       su is the more general option, and doesn't yet get in the way
+       of any functionality.
+   2. This will drop a binary RPM in
+      /usr/src/redhat/RPMS/i386/. Install it as described above.
+   3. Drop us an email with a brief description of your system (Linux
+      flavor, flavor's version number, and compiler at a bare minimum:
+      e.g. "stock RedHat Enterprise 3.0, gcc 3.2.3"), what problems
+      you had with the RPMs above, and a pointer to where I can get
+      your RPM, so people don't have to duplicate your effort.
+
+Your spiffy new binary RPM can then be used to install Microraptor on
+any other similar machines you have.
+
+Note that if you just need the daemon, use the mraptor-server RPM.
+It's a subset of the main RPM, and doesn't install the client (and
+hence avoids dependencies on GTK, etc.).  At the moment, it still
+builds everything, so if you're working from the source RPM, you'll
+still need GTK.  I'll fix that in the near future.
+
+------------------
+* Use The Source!
+
+If you absolutely can't use the RPM approach, you can build straight
+from the source yourself.  Obviously, grab the source tarball from the
+webpage.
+
+* System requirements.  Microraptor has currently only been used under
+  Linux.  It has been tested successfully with a variety of tool
+  versions (but unfortunately we don't have a list).  Here is one
+  configuration of tools that is known to work:
+
+  Redhat Linux 7.1 with CMU CS Facilities modifications, kernel 2.4.18
+  g++ 2.96
+  GNU Bison version 1.28
+  GNU flex version 2.5.4
+  GNU Make version 3.79.1
+  GTK 1.2.10 (needed for graphical client only)
+  CMU IPC 3.7.4
+    IPC is a locally developed inter-process communications library
+    http://www-2.cs.cmu.edu/afs/cs/project/TCA/www/ipc/index.html
+
+The majority of claw (the GUI) development was done using:
+  Debian Testing (Woody), kernel 2.4.18
+  g++ 2.95.4
+  GNU Bison version 1.75
+  GNU flex version 2.5.4
+  GNU make 3.79.1
+  CMU IPC 3.7.4
+
+  and...
+
+  Debian Testing (Sarge), kernel 2.4.18
+  g++ 2.95.4
+  GNU Bison version 1.875a
+  GNU flex version 2.5.4
+  GNU make 3.80
+  CMU IPC 3.7.4
+
+We explicitly DO NOT support compilers with versions less than gcc
+2.95.4.  We've run into the following problems:
+  egcs 2.91 does not provide enough template support for some of our
+     support classes.
+  gcc 2.95.3 has a bug in the std::string constructor from a char*
+     that crashes spawned child processes.
+
+The Microraptor source tree expects to be installed under a software/
+directory.  You must create an external/ directory in software/ which
+includes the IPC installation (potentially via symlinks to a
+previously-installed copy):
+
+* Choose a directory for your installation and do the following:
+
+  setenv ATACAMA_MEMBERS_DIR <your_dir>
+  mkdir $ATACAMA_MEMBERS_DIR/software
+
+* Set up the external directory under software to include the IPC
+  installation.
+
+  (the requirement is that the following files or simlinks to these
+  files be present)
+
+  software/external/lib/linux2/libipc.a
+  software/external/bin/linux2/central
+  software/external/include/ipc.h
+
+* Install the Microraptor source.  Pick one: grabbing it from CVS
+  or downloading the source tarball from www.ciabuggy.org/brennan/mraptor.
+
+  CVS: (must be part of the LITA project)
+    cd $ATACAMA_MEMBERS_DIR/software
+    setenv CVSROOT monk.frc.ri.cmu.edu:/user/atacama/software/master
+    cvs checkout src/microraptor
+    cvs checkout src/microraptor/atacama_env
+  Tarball:
+    Download tarball from www.ciabuggy.org/brennan/mraptor
+    cd $ATACAMA_MEMBERS_DIR/software
+    tar -xzf mraptor-*.tar.gz
+    mv mraptor/src .
+    rmdir mraptor
+
+* Pick up environment variables from atacama_env.
+
+  source $ATACAMA_MEMBERS_DIR/software/src/atacama_env
+
+* Compile
+
+  If you don't want the binaries installed to
+  $ATACAMA_MEMBERS_DIR/software/bin/<architecture>, set the
+  RELEASE_HOME environment variable.  
+
+  cd $ATACAMA_MEMBERS_DIR/software/src/microraptor
+  gmake RELEASE=1 install
+
+  (this produces the following files, which should be in your path
+   if you rehash; note that compiling with RELEASE=1 removes -g
+   and adds -O3, resulting in much longer compile times but much
+   faster executables (esp. the GUI, claw))
+
+  software/bin/linux2/mraptord
+  software/bin/linux2/mrterm
+  software/bin/linux2/claw
+
+----------------------------------------------------------------------
+RUNNING MICRORAPTOR
+
+------------------- BASICS
+
+The microraptor system consists of four binaries:
+
+ central
+   The IPC central server that routes all message traffic
+   between clients and daemons (part of the IPC distribution)
+ mraptord
+   The daemon.  An instance of the daemon must be run on each
+   host where you want the system to manage processes.  Daemons
+   interact with clients by executing commands and forwarding
+   status information.
+ claw
+   The graphical client.  Its interface allows you to run/kill
+   processes, interact with their consoles, etc.
+ mrterm
+   A simple console-based client that allows you to connect
+   to a single daemon and issue the same commands that claw
+   generates through its interface.
+
+In order to minimally run microraptor you do the following (you may
+want to do this in separate xterms) (note that if you installed from
+RPM, it's easies to use the SysV startup scripts; see "Running
+Mraptord on Boot"):
+
+1) start central
+2) start an instance of mraptord
+3) start one of the clients (claw or mrterm; claw is much nicer)
+
+Note that if you are running one of the binaries on a different
+host from where the central server is running, you need to say
+where central is located:
+
+  # setenv CENTRALHOST <host central is on>
+  # <run binary>
+
+In order to do anything useful, you will need to load a config file.
+An example config file can be found in
+src/microraptor/daemon/example.config.  A config file can be loaded
+either with a command-line option to mraptord:
+
+  # mraptord -c example.config
+
+or using the [Main]->[Load Local Config File] command in claw.
+
+All of the binaries print usage help if you specify the '-h' option.
+
+------------------- RUNNING MRAPTORD ON BOOT
+
+If you installed from an RPM, mraptord is should be already starting
+when you boot the system (if you want to start it the very first time
+without rebooting, just enter `/etc/init.d/mraptord start').  To use
+Microraptor, all you need to is start the client from any machine,
+with the "--centralhost primarymraptorhost:1382" commandline
+argument.  
+
+If you didn't install from an RPM, you can install into the SysV setup
+by hand, but you're on your own if you want to do so. :-) The easiest
+way is to just add mraptord to rc.local, which is run after all other
+system startup tasks are completed:
+
+We will run a copy of IPC's central on the nonstandard port 1382 for
+all mraptord-claw communications, leaving port 1381 free for the users
+to run their own central.  It is desirable to not have mraptord and
+user traffic over the same central to allow the users flexibility in
+restarting "their" central without killing the microraptor system.
+
+Assuming that /etc/rc.local is a tcsh script, add these lines to the
+machine that will run central (the "primary" mraptor machine):
+
+  set path = (. $path)
+  # -lx -u ensures central doesn't block on input or output via stdin/stdout
+  su - mraptor_user -c "/path/to/IPC/bin/central -s -lx -u -p1382 >& /dev/null &"
+  su - mraptor_user -c "/path/to/mraptord --centralhost localhost:1382 -c /path/to/config/file/my.config  >& /dev/null &"
+
+On all other daemon machines, add the following to /etc/rc.local:
+
+  set path = (. $path)
+  su - mraptor_user -c "/path/to/mraptord --centralhost centralhostname:1382 >& /dev/null &"
+
+You _can_ load a config file on startup for other daemons, but for
+your sanity a single centralized config is highly recommended.
+Additional config files will be merged in using microraptor's merging
+mechanism (which will be explained in detail elsewhere in this manual
+when we finish writing it).  Basically, overlapping entries from
+config files loaded later overwrite entries from config files loaded
+earlier, in order to maintain a consistent configuration system-wide.
+
+----------------------------------------------------------------------
+USING THE GUI CLIENT (CLAW)
+
+The GUI client executable is "claw".  You can get an up-to-date
+listing of its command-line arguments with "claw -h".
+
+Incidentally, there isn't a good reason for the name claw, except
+dinosaurs have claws, and I was tired of typing "microraptor" all the
+time.  A suitable acronym will be devised at some point.  Feel free to
+suggest one.
+
+------------------- WHAT IS CLAW?
+
+Curved and pointy.  Also, it's a GTK 1.2-based graphical client to the
+microRAPTOR system startup / management system.  Claw is run on a
+client machine (usually a remote / offboard workstation) in order to
+allow the user to start, stop, monitor, and interact with any number
+of processes on the machine or machines where mraptord is running.  An
+arbitrary number of claws can be running at any one time (potentially
+listening to / interacting with the same processes) on any number of
+client machines.  The disconnection or failure of a client does not
+affect the operation of the daemon nor the robot processes in any way.
+
+------------------- WHAT CAN CLAW DO?
+
+Everything! ;)  Seriously, the quickest / easiest way to learn how to
+use claw is to play with the sucker.  If you're impatient, the Shortcut
+Reference will give you a quick idea of what's available. 
+
+Claw implements the full commandset described below in "The Daemon
+Serial Interface"; see "Serial Interface -> GUI Elements Mapping" for
+the various ways to invoke the primitive commands.
+
+------------------- BRIEF WALKTHROUGH
+
+------------------- KEYBOARD SHORTCUT REFERENCE
+
+  Note: "currently selected process(es)" refers to the zero or more
+  processes highlighted in the tree widget in the upper-left pane of
+  the GUI.
+  Note: The rather unintuitive bindings of some of these options are
+  forced by the hardcoded bindings in the entry widget, since we try
+  to prevent conflicts.
+
+  Ctrl+R  : Run currently selected process(es)
+  Ctrl+T  : Terminate (kill) currently selected process(es)
+  Ctrl+S  : Show (view) currently selected process(es)
+  Ctrl+M  : Mask (hide) currently selected process(es)
+  Ctrl+O  : Switch to Overview tab (shows all currently viewed processes)
+  Ctrl+Y  : Update status of currently selected process(es)
+
+  For the above shortcuts, Shift+Ctrl+key performs the given action
+  for all known processes.
+
+  Ctrl+L  : Listen (subscribe to) currently selected process(es) output
+  Ctrl+N  : u(N)subscribe from currently selected process(es) output
+  Ctrl+G  : Set confi(G) for currently selected process
+  Ctrl+I  : Load cl(I)ent-local config file
+  Ctrl+J  : Reload most recently loaded client-local config file.
+            This reloads from disk, and will thus pick up any changes.
+  Shft+
+   Ctrl+I : Load a daemon-local config file
+  Ctrl+Z  : Swallow an arbitrary X window into a tab.
+  Ctrl+P  : Open the claw preferences dialog
+  Ctrl+Q  : Quit the client
+
+  Within the entry line for a given process, most Emacs-ish
+  keybindings hold (since they're hard-coded into the GTK widget,
+  they force some of the (rather non-intuitive) bindings above):
+  Ctrl+A  : Go to beginning of line
+  Ctrl+B  : Move back one character
+  Ctrl+C  : Copy to clipboard
+  Ctrl+D  : Delete forward one character
+  Ctrl+E  : Move to end of line
+  Ctrl+F  : Move forward one character
+  Ctrl+H  : Delete backward one character
+  Ctrl+K  : Delete from cursor to end of line
+  Ctrl+U  : Delete line
+  Ctrl+V  : Paste from clipboard
+  Ctrl+W  : Delete backward one word
+  Ctrl+X  : Cut to clipboard
+  Alt+B   : Move backward one word
+  Alt+D   : Delete forward one word
+  Alt+F   : Move forward one word
+
+------------------- SERIAL INTERFACE -> GUI ELEMENTS MAPPING
+    
+  COMMAND          GUI PATHWAYS
+
+  cancel           Not implemented / not needed
+
+  dhelp            Not implemented / not needed
+
+  dload            1. Shift+Ctrl+I
+                   2. Main->Load remote config file
+
+  dquit            Main->Kill Server Daemon
+
+  get status       1. Monitoring->Get Status [of all]
+                   2. Ctrl+Y (currently selected processes)
+                   3. Shift+Ctrl+Y (all known processes)
+                   4. Right-click process entry in tree
+                   5. Right-click proccess' output display
+
+  get clock        Automatically subscribed at connection time
+
+  get config       1. Main->Set Process Config
+                   2. Ctrl+G
+                   3. Right-click process entry in tree
+
+  ipc              Not implemented
+
+  kill             1. Signals-> Kill [Selected | All]
+                   2. Ctrl+T (currently selected processes)
+                   3. Shift+Ctrl+T (all known processes)
+                   4. Right-click process entry in tree
+                   5. Bomb button in output display
+                   6. Right-click proccess' output display
+
+  run              1. Signals-> Run [Selected | All]
+                   2. Ctrl+R (currently selected processes)
+                   3. Shift+Ctrl+R (all known processes)
+                   4. Right-click process entry in tree
+                   5. Running stick guy button in output display
+                   6. Right-click process' output display
+
+  set config       1. Automatically fired on loading of config file
+                      (Main->Load [Local | Remote] Config File)
+                   2. Main->Set Process Config
+                   3. Ctrl+C
+                   4. Right-click process entry in tree
+
+  stdin            Type in the one-line box at the bottom of a process
+                   view
+
+  sub
+
+  unsub
+
+------------------- GUI LAYOUT
+------------------- CLAW PREFERENCES
+------------------- CLAW AND X WINDOWS
+------------------- EASTER EGGS
+
+What's the point of a fancy-dancy GUI if you don't add extras?  At the
+moment, the only "toy" comes into play when you generate errors (not
+warnings) if "Cool graphics" are turned on.
+
+------------------- IMPLEMENTATION CAVEATS / DESIGN DECISIONS
+
+1. The "idle time" display at the top of each process display window
+   and in the third column of the tree display is the number of
+   seconds since the process last output something to stdout.  This is
+   updated every time the client receives a stdout line.  Also, in the
+   event that you aren't subscribed to a given process, the client
+   pings the daemon for status information (including the last time a
+   line was printed out) every thirty seconds.
+
+2. No guards against simultaneous interaction: you're free to step on
+   the toes of other claw users.
+
+----------------------------------------------------------------------
+USING THE SERIAL CLIENT (MRTERM)
+
+commands understood by mrterm:
+  NOTE: commands not understood by mrterm are forwarded to the daemon
+
+  fg <process_name>
+    put <process_name> in the foreground.  while in foreground mode,
+    mrterm simulates a console connected to the stdin/stdout of the
+    given process.  in order to send a command to the mrterm instead,
+    preface it with a '/' character.  for example, \"/bg\" puts the client
+    back into background mode.
+  bg
+    go back into background mode (the default mode), where what you type
+    is interpreted as a command to the mrterm (either processed locally
+    if the command is recognized as a local command, or forwarded to the
+    daemon).
+  load <config_file_name>
+    causes mrterm to load a client-side config file and forward the
+    information to the daemon using 'set' commands.  use 'dload' to load a
+    daemon-side config file.
+  help (or 'h')
+    shows help on the mrterm and mraptord interfaces.
+
+All other commands are forwarded to the daemon for processing.  See the
+"Daemon Serial Interface" section below.
+
+----------------------------------------------------------------------
+WRITING CONFIGURATION FILES
+
+(write me!)
+
+Gotchas:
+
+  Members of a group are implicitly serialized, so if you have:
+
+    groups => [ foo => "bar baz"],
+    processes => [ bar => { depends => ["baz"] }, baz => {}]
+    (rest of process config omitted for clarity)
+
+  then running the foo group will result in a dependency cycle.
+
+For now, look at the examples in src/microraptor/daemon/*.config.
+
+----------------------------------------------------------------------
+RUNNING PROCESSES UNDER A DEBUGGER
+
+Mraptord can run processes under gdb.  In the config for each process,
+there is an optional field 'debugger'.  Set its value to 'gdb' (or the
+full path to the gdb binary) to run the process under gdb.  No other
+debuggers are supported.
+
+Considerations:
+
+* The binary specified in the 'cmd' field must be a valid absolute or
+  relative filename, *without* relying on the executable path.
+
+* When you run a process that is configured to use the debugger,
+  mraptord starts the debugger but *does not* issue the 'run' command to
+  gdb to start the inferior process itself.  This is so that you can
+  give preliminary commands to gdb before the process starts, such as
+  setting breakpoints.
+
+* In order to run the process, you have two alternatives.  First, you
+  can issue the 'run' command to gdb manually.  Second, you can prepend
+  the 'run' command to the 'stdin_commands' field of the process config
+  to start the process automatically.
+
+* However you run the process, you do *not* need to specify command-line
+  arguments for gdb to pass on--you can use 'run' instead of 'run arg1
+  arg2'.  This is because mraptord automatically sets the command-line
+  arguments for gdb to pass to the inferior process using the gdb 'set
+  args' command.  For example, if the 'cmd' field of the process config
+  is set to 'mybinary arg1 arg2', then mraptord will send the command
+  'set args arg1 arg2' to gdb stdin.  This happens before any commands
+  in 'stdin_commands' are issued.
+
+* While debugging, you may want to send an interrupt to the process to
+  return control to gdb.  If you are using mrterm, this can be done
+  using the daemon command 'signal INT <process_name>' (which properly
+  signals the inferior process under gdb rather than gdb itself).  In
+  the future you may be able to type ctrl-C in the process stdin widget
+  in claw to send an interrupt.
+
+* A note on implementation, might be helpful for tracking down mraptord
+  problems: When you run a process under a debugger, mraptord creates a
+  temporary symlink (named e.g. "/tmp/mrlinkULxKNv") to the process
+  binary specified in the 'cmd' field.  This is so that signals can be
+  sent to the inferior process later using the 'killall' command with
+  the temporary symlink as a unique name.  These symlinks are supposed
+  to be cleaned up when the process exits.
+
+----------------------------------------------------------------------
+THE DAEMON SERIAL INTERFACE
+
+-------------- AVAILABLE COMMANDS
+
+--- cancel
+
+Cancels the effects of unfinished run commands.  Specifically: if there are
+any pending processes (processes waiting for other processes to finish
+startup), their status is changed from "pending" to "not_started".
+
+
+
+--- dhelp
+
+Get user help, which is returned in the form of help responses.
+
+
+
+--- dload
+
+Load the given daemon-side config file.
+
+syntax:
+  dload <config_file_name>
+
+examples:
+  dload example.config
+
+
+
+--- dquit
+
+Causes the daemon to shut down, flushing all log files.
+
+
+--- dshout
+
+When any client issues the "dshout" command, the daemon forwards the
+message as a "shout" response to all clients that are subscribed using
+"sub shout".  This can be used to support simple chat functionality
+between clients.
+
+syntax:
+  dshout <sending_user> <text>
+
+examples:
+  dshout brennan "marco!"
+
+--- get
+
+Gets the current value of some daemon variable.  Possible variables are
+"status", "config", and "clock".  Each variable has a corresponding
+response message; see the response syntax section.
+
+syntax:
+  get <variable> <extra_args>
+  1. get status -a
+     get status <process1> [ <process2> ... ]
+  2. get config -a
+     get config <process1> [ <process2> ... ]
+  3. get clock
+
+examples:
+  get status -a
+  get status ctr ctpan
+  get config ctr
+  get clock
+
+
+
+--- ipc
+
+Publishes an empty IPC message with the given message name (some
+processes may wait for such a signal before taking an action).
+
+syntax:
+  ipc <message_name>
+
+examples:
+  ipc self_destruct
+
+[ you may not want to run the above example ]
+
+
+
+--- kill
+
+Kills the given processes (or all processes, if -a is specified).  How
+to kill the process can be specified using the kill_cmd and
+backup_kill_cmd, and backup_kill_delay fields of its configuration
+(refer to the 'set config' command).  The default behavior is to send
+SIGTERM (15), wait 5 seconds for a clean shutdown, then send SIGKILL (9)
+if the process is still running.
+
+Usually causes all clients to get a status message for each killed
+process indicating that the process now has "signal_exit" status.
+
+The -p option is provided for compatibility with the run command.  It is
+silently ignored.
+
+syntax:
+  1. kill -a
+  2. kill [ -p ] <process1> [ <process2> ... ]
+
+examples:
+  kill -a
+  kill ctr
+  kill ctr ctpan
+
+
+
+--- restart
+
+Restarts the given processes (or all processes, if -a is specified).
+To restart a process, the daemon kills it, waits for it to die, then
+runs it.
+
+NOTE: For ease of implementation, restarting multiple processes (or a
+group!) has the following possibly error-prone semantics: 'restart a b'
+is the same as issuing separate commands 'restart a' and 'restart b'.
+In particular:
+
+- When process 'a' dies, 'run a' is immediately issued, regardless
+  of whether 'b' is dead yet.  (And vice versa.)
+- There is no implied serialization, as there would be with the
+  'run a b' command.  'b' may be started before 'a' is running.
+
+The -p option is provided for compatibility with the run command.  It is
+silently ignored.
+
+syntax:
+  1. restart -a
+  2. restart [ -p ] <process1> [ <process2> ... ]
+
+examples:
+  restart -a
+  restart ctr
+  restart ctr ctpan
+
+
+
+--- run
+
+Executes the given processes (or all processes, if -a is specified).
+Usually causes all clients to get a status message for each process
+indicating that the process now has the "running" status.
+
+Normally, the daemon runs the processes serially, meaning that it runs
+them in the order you specify, and there are implied dependencies
+between consecutive processes in the list.  If the order of execution is
+not important, specify -p to run the processes in parallel.
+
+syntax:
+  1. run -a
+  2. run [ -p ] <process1> [ <process2> ... ]
+
+examples:
+  run -a
+  run ctr
+  run ctr ctpan
+  run -p ctr ctpan
+
+
+
+--- run_slave
+
+This command should be sent only from one daemon to another.  It is used
+to handle cross-machine run commands.  The <client> field specifies the
+client which sent the original run command (which is important if there
+are client-specific environment variable settings).
+
+syntax:
+  run_slave <client> [-p] <process1> [ <process2> ... ]
+
+examples:
+  run_slave c_sputnik_33708 ctr
+  run_slave c_sputnik_33708 ctr ctpan
+  run_slave c_sputnik_33708 -p ctr ctpan
+
+
+--- set
+
+Sets the value of a daemon variable.  Currently, the only possible variables
+are "config" and "client".
+
+Set config creates a process record for the given process name, and sets
+its configuration variables (such as <cmd>, <env>, etc).  The second
+form of set config sends an entire config file in one command.
+
+The "prior" string that optionally appears after version 2 of the "set
+config" syntax indicates that the command is from a module that
+connected before the daemon connected.  If "prior" is present, any
+conflicts between same-name processes in the stored configuration and
+the incoming configuration should be resolved in favor of the (more
+recently loaded) stored configuration.  Otherwise they should be
+resolved in favor of the incoming configuration.
+
+Set client notifies the daemon about settings specific to a particular
+client.  If a client sends 'set client {DISPLAY="clienthost:0"}', and
+then runs a process with the configuration env => {DISPLAY => "%c"},
+the "%c" pattern in the DISPLAY variable will be replaced with the
+client setting "clienthost:0".
+
+Set buffer block tells the daemon to use a more efficient buffering
+scheme over the serial connection to the client.  This may introduce
+small delays (~0.5 s) before messages are forwarded, but in general
+should significantly improve throughput over high-latency connections.
+Block buffering is off by default in order to avoid breaking older
+clients.
+
+syntax:
+  1. set config <process_name> <process_config>
+  2. set config <entire_config_file> [prior]
+  3. set client <client_config>
+  4. set buffer block
+
+examples:
+  set config ctr { cmd=/bin/ctr, env={DISPLAY=":0.0", LD_LIBRARY_PATH=/lib} }
+  set config {groups={normal="ctr ctpan"},
+              processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+  set config {groups={normal="ctr ctpan"},
+              processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+             prior
+  set client {DISPLAY => "clienthost:0.0"}
+  set buffer block
+
+<process_config> fields:
+  cmd (string)
+    Command to run on the remote host to start the process
+  working_dir (string)
+    If supplied, change to this directory before running <cmd>
+  log_file (string)
+    If supplied, log process stdout to a file whose name is generated
+    according to the specified name template.  The name template can
+    include the following patterns:
+
+      %n  replaced with the process name
+      %u  replaced with a 4-digit string that makes the filename unique
+
+    The format of log file lines is the same as the format for the "stdout"
+    response (see below), except that the initial "stdout
+    <process_name>" is not included.
+  env (hash)
+    If supplied, set environment variable key/value pairs according to
+    the hash.  Example: env => {DISPLAY=":0.0", LD_LIBRARY_PATH="/lib"}.
+    Each environment variable value can be a template that includes the
+    following patterns:
+
+      %c  replaced at process run time by the client setting for that
+          environment variable.  for instance, if client A sends the
+          command 'set client {DISPLAY=":13.0"}', and the process
+          configuration includes env => {DISPLAY => "%c"}, then if
+          client A runs the process, it will use the DISPLAY setting of
+          ":13.0".
+
+  ready (string)
+    If supplied, the daemon will monitor whether this process is ready.
+    After being executed, the process has status 'starting' until the
+    ready string is detected as a substring of a stdout line.  At that
+    point the status is changed to 'running'.  Any processes that depend
+    on this process will be 'pending' (not executed) until this process
+    is running.
+  depends (vector of strings)
+    If supplied, declares that this process depends on the listed
+    processes.  When this process is run, it is placed in the pending
+    state until all processes it depends on are ready (have been run and
+    have output their ready string, if any).  The daemon attempts to run
+    the required processes automatically, possibly sending commands to
+    other daemons if the required processes are configured to run on
+    another host.  Example: depends => ["a", "b", "c"].
+  kill_cmd (string)
+    If supplied, gives the template for an alternate command to use for
+    killing the child process.  The command template can include the
+    following patterns:
+
+      %p  replaced with the child process pid
+
+    The default kill command is "kill %p" (which sends a SIGTERM to the
+    process).  The kill command is executed using the system() call.
+    This means that it uses the working directory and the environment
+    variables from when the daemon was run.  In particular, it does not
+    use the fields working_dir and env from the child process
+    configuration.  Also, the daemon blocks waiting for the kill command
+    to complete, so it should be designed to finish quickly.  See also
+    backup_kill_cmd.
+  backup_kill_cmd
+    If a process is still running backup_kill_delay seconds after
+    kill_cmd is issued, the daemon runs backup_kill_cmd.  The default is
+    "kill -KILL %p" (which sends an uncatchable SIGKILL to the process).
+    You can choose a different value by specifying this parameter, or
+    specify backup_kill_cmd => "" to simply eliminate the backup kill.
+  backup_kill_delay
+    The number of seconds to wait in between running kill_cmd and
+    backup_kill_cmd.
+  host (string)
+    Specifies which host the process should be run on.  If there are
+    multiple daemons running, a "run" command for a process with a
+    specified host can be issued to any daemon, and that daemon will try
+    to forward the command to the appropriate daemon.  If no host is
+    specified, the process is run on the daemon to which the "run"
+    command was issued.
+  stdin_commands (vector of strings)
+    If supplied, gives a list of commands to be automatically issued
+    to the process on stdin after it enters the 'running' state.
+    You can still pass further manual commands to stdin from a client
+    after the automatic commands are issued.
+  debugger (string)
+    If supplied, run the process under the specified debugger.  See
+    the section on 'running processes under a debugger'.
+
+--- signal
+
+Send a signal to processes.  This is particularly useful for
+interrupting a process running under a debugger (with SIGINT).
+Available signals are 'HUP', 'INT', 'ILL', 'ABRT', 'BUS', 'KILL',
+'SEGV', 'PIPE', and 'TERM'.  Refer to the man page for signal(5) for the
+meanings of the signals.
+
+syntax:
+  signal <signame> [-a] [processes]
+
+examples:
+  signal INT ctr
+  signal HUP ctr ctpan
+  signal INT -a
+
+--- stdin
+
+Send input to the stdin of the given process.
+
+syntax:
+  stdin <process> <input>
+
+examples:
+  stdin ctr "forward 50"
+
+
+
+--- sub
+
+Subscribe to messages from the daemon of type <message_type>.  Valid
+types are "stdout", "status", "config", "clock", and "shout".  The
+meanings of these message types are discussed in the response syntax
+section.
+
+The stdout message type is special.  It causes the client to subscribe
+only to the stdout of <process>, possibly playing back old stdout
+lines from the daemon's buffer.  <playback_lines> is the number of lines
+to play back (fewer may be played back, depending on the size of the
+buffer and how much output the process has generated).  If the client
+specifies <last_received_time>, the daemon only plays back lines with a
+time stamp after that time.
+
+syntax:
+  1. sub <message_type>
+  2. sub stdout <process> [ <playback_lines> <last_received_time> ]
+
+examples:
+  sub status
+  sub config
+  sub shout
+  sub stdout ctr
+  sub stdout ctr 50
+  sub stdout ctr 50 1047247438.775163
+
+--- unsub
+
+Unsubscribe from <message_type>.  Valid types are listed in the
+description of the "sub" command.
+
+The stdout message type is special.  You unsubscribe to process stdout
+streams individually by specifying the process name.
+
+syntax:
+  1. unsub <message_type>
+  2. unsub stdout <process>
+
+examples:
+  unsub status
+  unsub config
+  unsub stdout ctr
+
+
+
+-------------- RESPONSE SYNTAX
+
+--- clock
+
+Clock messages are sent periodically (currently, every 60 seconds) to
+clients that have subscribed to them using the get_clock command.  They
+allow the client to correct for clock skew between the client host and
+daemon host.  See the description of the <time_stamp> field of the
+stdout response for help on generating a human-readable representation
+of the timestamp.
+
+syntax:
+  clock <time_stamp>
+
+examples:
+  clock 1045615833.244992
+
+
+
+--- config
+
+config responses are generated by client "get config" commands.
+The second form of the config response includes the whole config file
+in one response.  This is generated when the client sends "get config -a".
+More recently, config responses are also automatically sent to new
+clients in order to ensure that all modules have the same config.
+
+The "prior" string that optionally appears after version 2 of the syntax
+indicates that the response is from a module that connected before the
+client connected.  If "prior" is present, any conflicts between
+same-name processes in the stored configuration and the incoming
+configuration should be resolved in favor of the (more recently loaded)
+stored configuration.  Otherwise they should be resolved in favor of
+the incoming configuration.
+
+syntax:
+  1. config <process> <process_config>
+  2. config <entire_config_file> [prior]
+
+examples:
+  config ctr {cmd=./counter,env={DISPLAY=":0.0"}}
+  config {groups={normal="ctr ctpan"},
+          processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+  config {groups={normal="ctr ctpan"},
+          processes={ctr={cmd=ctr},ctpan={cmd=ctpan}}}
+         prior
+
+
+<process_config> fields: see the set config command.
+
+
+
+--- help
+
+help responses are generated by client help commands.
+
+syntax:
+  help <help_string>
+
+examples:
+  help %This is the help.
+
+--- response
+
+Each command generates a response, which is either "ok" or a warning or
+error with an associated text message.  The response is sent only to the
+client that sent the command, but if any processes change state as a
+result of the command, the resulting status messages are sent to all
+clients (the run and kill commands usually cause status changes, but the
+get command does not).
+
+Special note: if a command was preceded by a number, as in "1 run ctr",
+the response will be tagged with the same number, as in "response 1 ok".
+If desired, clients can use unique numeric tags to get confirmation of
+command completion.
+
+syntax:
+  response ok
+  response error <text>
+  response warning <text>
+
+examples:
+  response ok
+  response error "unknown command x"
+  response warning "your shoes are untied"
+
+--- shout
+
+When any client issues the "dshout" command, the daemon forwards the
+message as a "shout" response to all clients that are subscribed using
+"sub shout".  This can be used to support simple chat functionality
+between clients.
+
+syntax:
+  shout <sending_client> <sending_user> <text>
+
+examples:
+  shout c_monk_9918 trey "polo!"
+
+--- status
+
+Whenever the status of a process changes (e.g., it is run or killed), a
+status message is sent to all processes.
+
+syntax:
+  status <status_hash>
+
+examples:
+  status {name=ctr,status=running,pid=9709}
+  status {name=ctpan,status=signal_exit,terminating_signal=9}
+
+<status_hash> fields:
+  name (string)
+    The name of the process
+  status (string)
+    The status of the process.  Could be any one of the following:
+      not_started:   hasn't been started yet
+      pending:       will be run as soon as its dependencies are satisfied
+      starting:      started but not ready yet
+      running:       running normally, startup complete
+      clean_exit:    ended cleanly, like exit(0) or main() { return 0 }
+      error_exit:    ended on an error, like exit(1) or main() { return 1 }
+      signal_exit:   killed by an uncaught signal
+  pid (long)
+    The pid of the process.  Only present if status = running.
+  last_stdout_time (long)
+    The last time that data was received from the process on stdout.
+    Only present if status = running.
+
+    This could be useful to determine when a process is hanging.  Since
+    new data on stdout doesn't trigger a status update to the client,
+    clients interested in using this field should send periodic "get -a"
+    commands to refresh their value.  The time is represented as an
+    integer number of seconds since the epoch, as would be returned by
+    time(2).  See the description of the <time_stamp> field of the
+    stdout response for help on generating a human-readable
+    representation.
+  exit_value (long)
+    The exit value of the process.  Only present if status = error_exit.
+  exit_time (long)
+    The time when the process exited.  Same representation as
+    last_stdout_time.  Only present if status has one of the *_exit values.
+  terminating_signal (long)
+    The number of the signal that killed the process.  Only present
+    if status = signal_exit.
+
+--- stdout
+
+Whenever a process generates output on stdout, a stdout/x message is sent
+to clients that have subscribed to the stdout of that process.
+
+syntax:
+  stdout <process> <time_stamp> <line_type> <text>
+
+examples:
+  stdout ctr   1045615833.244992 x %moved forward 50
+  stdout ctpan 1045615834.744992 c %this is an extra long line, too
+  stdout ctpan 1045615834.744992 x % long for the line buffer
+
+<time_stamp>
+  The time stamp is the result of a gettimeofday() call, converted
+  from a timeval to a double.  Ways to generate a human-readable form
+  of the time stamp include:
+
+    [ in a C program, see also 'man strftime' ]
+    #include <time.h>
+    time_t n = timestamp_integer_part;
+    char *human_readable = ctime(&n);
+
+    [ perl one-liner, supply the time stamp as the argument ]
+    perl -e '$x = localtime($ARGV[0]); print "$x\n";' 1045615833.244992
+
+<line_type>
+  This is a single character indicating what kind of line this is.
+  Possible values are:
+
+    x: The line was broken by an LF (\n) or CRLF pair (\r\n).
+       This is the normal case.
+
+    c: The line was too long for a single line in the buffer (currently
+       80 chars).  The client may stitch long lines back together, or
+       print the line with an ellipsis at the end.
+
+    r: The line was broken with a CR (\r). If possible, the client
+       should move the cursor back to the beginning of the line so
+       that subsequent lines overwrite it.  This supports processes
+       that use \r to print spinners, indicating that the process
+       is still working without filling up the terminal.
+
+<text>
+  This is a string that has been escaped by prefacing it with a %
+  character rather than the usual RCL quoting mechanism (which is to
+  surround the string with quotes and replace special characters with
+  escape codes like \t or \007).  The entire line after the % character
+  is interpreted by RCL as a single string, regardless of spaces or
+  other reserved RCL characters.  The reason for this is that the same
+  line sent to the client is also sent to the log file, and this escape
+  syntax should be easier for most log analysis scripts to deal with.
+
+  Mraptord also inserts meta-data lines into the stdout response stream
+  (unlike the rest of the stdout responses, they are not generated by
+  the process itself).  All lines generated by mraptord have the prefix
+  'MRAPTORD:' embedded in the <text> field.  Here are some example
+  values of the <text> field for meta-data lines:
+
+    MRAPTORD: [action] [due_to c_monk_12500] executing: bc
+    MRAPTORD: [status] process status is now: running
+    MRAPTORD: [stdin] [due_to config_stdin_commands] 3 + 4
+    MRAPTORD: [action] [due_to shutdown] trying to kill process with '-kill 12516'
+    MRATPORD: [status] process status is now: signal_exit (signal 15)
+  
+
+----------------------------------------------------------------------
+PROGRAMMER'S GUIDE
+
+-------------- THE CLIENT/DAEMON COMMUNICATION INTERFACE
+
+Each client/daemon pair can connect either through a pair of FIFOs, or
+through IPC messages (the IPC messages simulate a serial connection
+with an interface identical to the FIFO version).
+
+The MR_Comm object defined in microraptor/ttyclient/clientComm.{h,cc}
+provides an abstract interface, so that modules can transparently use
+either communication method.
+
+Setup of IPC communications:
+
+Three message varieties:
+  mr_search_ping, format "string"
+      whenever a new client or daemon connects to IPC, it sends an
+      mr_search_ping message with its module name.  clients' module
+      names start with "c_", and daemon's module names start with 'd_',
+      so subscribers to the ping message can determine which type
+      the connecting module is.
+  mr_search_ack, format "string"
+      when a module receives a ping message from a module of a different
+      type, it responds with an ack including its module name.  the idea
+      is that every time a new module connects, it notifies other
+      modules of its existence via ping, and learns of their existence
+      via ack.  this way, the order of connection doesn't matter.
+  mr_<module_name1>_to_<module_name2>, format "string"
+      after each pair of modules of different types learn about each
+      other, they simulate a serial connection using a pair of message
+      names for two-way communication.
+
+<module_name>, by convention, is <module_type>_<host_name>_<pid>, where
+  <module_type> is either "c" for client or "d" for daemon
+  <host_name> is the short form of the host the module is running on.
+     For example, on sputnik.frc.ri.cmu.edu, <host_name> is sputnik.
+  <pid> is the module's process id.
+  
+mrterm.cc and raptorDaemon.cc provide an example of using the MR_Comm object.
+
+-------------- THE UNDERLYING COMMAND LANGUAGE (RCL)
+
+An explanation of the syntax employed by the command language:
+
+- A command is a space-separated vector of expressions
+
+- An expression can be a number, a string, a bool, or a compound data
+  structure (a hash or vector)
+- Compound data structures can be nested to arbitrary depth
+- Specific data types:
+  - Space-separated vector (only available at the top level, cannot be
+    nested within other compound data types); syntax is:
+      exp1 exp2 exp3
+  - Vector syntax: [exp1, exp2, exp3]
+  - Hash syntax: {key1=val1, key2=val2}
+  - String syntax: strings can be left unquoted if they do not contain
+    special characters, and cannot be confused with numbers.  In
+    particular, most file names are ok unquoted.  If you need special
+    characters, quote the string, and use backslash escape sequences if
+    necessary, as in C (e.g., \n, \", \007, etc).  A recent addition is
+    the ability to write a % followed by an unescaped string as the last
+    expression in a command.
+  - Numbers: Any decimal formats like -1.0e+7 or 900 are acceptable.
+  - Boolean syntax: true or false
+
+Here are a few examples of grammar accepted by the parser (not all
+are commands understood by the daemon):
+
+  set ctr {cmd=/bin/ctr, env={DISPLAY=":0.0"}}
+  print_list [1, 2, /foo]
+  "a \"quoted string\" with some special characters\n"
+  some_nested_data { x=[ 1, 2, {a=0, b="foo"} ], y=1 }
+  stdout ctr 1045619679.072521 x %this is an unescaped string, "hello"
+
+
+----------------------------------------------------------------------
+TROUBLESHOOTING / COMMON MISTAKES
+
+1. Microraptor insists that my program isn't here, but I'm sure I have
+   the working directory right!  What's going on?
+
+   Your (mraptord's) path likely does not include the current
+   directory (i.e. ".").  Check this by changing one of your programs
+   to 'env', and look at the PATH variable in the output.  The fix is
+   to prepend "./" to your executable's name in your config file, or
+   change mraptord's prelaunchfile (in /etc/mraptord.conf) to include
+   "." in your path.  We recommend the former: including the cwd in
+   your path often results in difficult-to-track-down problems months
+   down the road when you've forgotten you made the change. 
+
+2. I killed a process, but it won't die!  When I login to the
+   offending machine and run 'ps auxww', the process is listed as
+   <defunct>.  What gives?
+
+   This is an outstanding bug in mraptord that we're working on
+   ironing out.  It doesn't crop up often enough to make debugging it
+   easy.  For now, the workaround is (unfortunately) to restart the
+   offending mraptord.
+
+
+######################################################################
+# $Log: mraptor_manual.txt,v $
+# Revision 1.20  2006/11/13 18:19:33  trey
+# added documentation for "signal" command
+#
+# Revision 1.19  2006/06/24 02:10:43  trey
+# marked old manual as obsolete
+#
+# Revision 1.18  2006/06/23 17:05:33  trey
+# added docs for running under a debugger
+#
+# Revision 1.17  2006/06/21 22:40:51  trey
+# added documentation for stdin_commands and debugger per-process config fields; added description of meta-data lines in stdout stream
+#
+# Revision 1.16  2006/06/14 01:41:14  trey
+# added "sub shout" and "dshout" commands
+#
+# Revision 1.15  2005/05/18 01:08:49  trey
+# added "set buffer block" to daemon commands
+#
+# Revision 1.14  2004/09/02 19:36:53  brennan
+# Added group-serialization gotcha.
+#
+# Revision 1.13  2004/07/20 15:43:04  brennan
+# Added defunct note to troubleshooting section.
+#
+# Revision 1.12  2004/07/20 15:40:54  brennan
+# Added Troubleshooting section to manual, and changed install instructions
+# to reflect switch to RPMs.
+#
+# Revision 1.11  2004/05/27 13:58:55  trey
+# added docs for stdout_wait_for_end_of_line
+#
+# Revision 1.10  2004/05/26 14:10:39  trey
+# added docs for restart command, corrected misinformation about kill command
+#
+# Revision 1.9  2003/11/21 19:48:59  trey
+# added docs for backup_kill_{cmd,delay}
+#
+# Revision 1.8  2003/11/20 02:37:56  trey
+# updated in several places to account for software changes
+#
+# Revision 1.7  2003/10/05 19:58:38  brennan
+# Client files: various tweaks wrt zvt.
+# Scripts: initial commit of release / install system.
+#
+# Revision 1.6  2003/10/04 20:54:37  trey
+# added documentation for host field
+#
+# Revision 1.5  2003/08/08 15:20:23  brennan
+# client: added ZVT terminal display option
+# daemon: no net effect.
+#
+# Revision 1.4  2003/06/25 03:41:38  brennan
+# Added note about setting RELEASE_HOME.
+#
+# Revision 1.3  2003/06/25 03:37:14  brennan
+# Updated compile instructions; made default release home the same as
+# development.
+#
+# Revision 1.2  2003/06/24 19:25:50  brennan
+# Various updates to documentation.
+#
+# Revision 1.1  2003/06/17 16:36:33  brennan
+#   Added docs directory; began configuration documentation.
+#
+#   Added right-click menus to group members (same code as regular
+#   process nodes)
+#
+#   Added -d option to print all message traffic out
+#
+#   Fixed bug that was incorrectly searching the ssh_displays
+#
+# Revision 1.30  2003/06/06 16:25:00  trey
+# updated to take note of "prior" optional arg to "config" responses and "set config" commands
+#
+# Revision 1.29  2003/03/30 19:47:11  brennan
+# Massive changes in the guts of claw.  In response to the performance
+# problems observed in the field, we now only instantiate one
+# ProcessWidget per process and reparent the widget back and forth
+# between the tabs of the notebook.  This resulted in zero observable
+# change from the user standpoint (besides an unquantified performance
+# bump during high-output situations and a slowdown in tab switching
+# (since the widget gets unrealized and realized during a tab switch)).
+# This needs to be stress-tested badly.
+#
+# Moved kill option in right-click menu to the bottom.  This is
+# non-intuitive in that it doesn't occupy the same slot as "run", but it
+# should reduce accidental clickage.  QUESTION: Would people prefer that
+# "run" also gets moved to the end?
+#
+# Ordinalized swallowed windows with duplicate names (added numerical suffixes)
+#
+# Revision 1.28  2003/03/22 21:56:44  trey
+# added "set client" command
+#
+# Revision 1.27  2003/03/18 00:49:14  trey
+# added custom kill command feature
+#
+# Revision 1.26  2003/03/14 03:01:17  trey
+# rationalized command names, added ability to subscribe to config and status messages
+#
+# Revision 1.25  2003/03/13 23:25:16  trey
+# fixed syntax error in set_config description
+#
+# Revision 1.24  2003/03/11 01:52:36  trey
+# modified get_config and set_config commands to add "groups" option to config file
+#
+# Revision 1.23  2003/03/11 00:34:37  trey
+# added default serial execution when multiple processes are passed with the run command, and -p option to disable serial execution
+#
+# Revision 1.22  2003/03/10 22:55:22  trey
+# added dependency checking
+#
+# Revision 1.21  2003/03/10 17:18:29  trey
+# made get_clock have a subscribe functionality instead of only giving an immediate response
+#
+# Revision 1.20  2003/03/10 16:53:46  trey
+# added ready monitoring
+#
+# Revision 1.19  2003/03/10 16:02:40  trey
+# added new process status values: pending and starting
+#
+# Revision 1.18  2003/03/10 05:35:11  trey
+# added get_clock command and ability of daemons to connect to each other
+#
+# Revision 1.17  2003/03/09 22:29:46  trey
+# made log file names unique (changed log_dir to log_file with template patterns), added ability to suppress stdout history lines already received by client
+#
+# Revision 1.16  2003/03/07 18:09:50  trey
+# updated installation instructions
+#
+# Revision 1.15  2003/02/27 17:53:38  brennan
+# Fixed some mistakes in resolving conflicts between Trey's and Brennan's
+# edits.
+#
+# Revision 1.14  2003/02/26 05:09:40  trey
+# implemented chris's suggestion for \r handling
+#
+# Revision 1.13  2003/02/25 21:43:27  trey
+# added clock response so client can correct for clock skew
+#
+# Revision 1.12  2003/02/20 19:57:45  trey
+# made command names for mrterm and mraptord more consistent, added better help facilities to mrterm
+#
+# Revision 1.11  2003/02/20 15:51:42  trey
+# updated to reflect get_config, set_config, and the config response.  also added last_stdout_time and exit_time status fields.
+#
+# Revision 1.10  2003/02/19 16:25:55  trey
+# updated comm description, RCL modifications
+#
+# Revision 1.9  2003/02/19 02:11:28  trey
+# updated log_dir explanation
+#
+# Revision 1.8  2003/02/19 01:57:10  trey
+# modified stdout response format
+#
+# Revision 1.7  2003/02/19 01:16:27  trey
+# mraptor_manual.txt
+#
+# Revision 1.6  2003/02/19 00:46:05  brennan
+# Changed clientComm to keep track of daemon name.
+#
+# Revision 1.5  2003/02/17 17:19:22  trey
+# added some text on using the serial client
+#
+# Revision 1.4  2003/02/17 16:46:30  trey
+# added some material about IPC client comm
+#
+# Revision 1.3  2003/02/17 16:20:48  trey
+# minor edit
+#
+# Revision 1.2  2003/02/16 21:39:30  trey
+# mostly ready
+#
+# Revision 1.1  2003/02/16 21:12:46  trey
+# initial check-in
+#
+#
+

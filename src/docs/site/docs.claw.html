@@ -1,0 +1,146 @@
+<meta name="description" content="Documentation of the configuration
+and use of the claw graphical client.">
+<h2>Using the Graphical Client (claw)</h2>
+
+<div class="content">This needs to be extended with screenshots,
+etc.</div>
+
+<div class="content">Microraptor's graphical client is "claw", which
+supports (relatively :-) intuitive access to the Microraptor system's
+functionality, and makes it easy to monitor and control many processes
+simultaneously.  As with all graphical programs, documentation is a
+bit of a challenge; we've done our best here, and divide it into the
+following sections (the shorter of which are included below, while the
+longer have been separated out into their own pages):</div>
+
+<h3>Contents</h3>
+
+<ul>
+  <li><a href="#what">What is Claw?</a></li>
+  <li><a href="#capabilities">Claw's Capabilities</a></li>
+  <li><a href="#walkthrough">Walkthrough</a></li>
+  <li><a href="./index.html?page=docs.claw.args">Commandline Arguments</a></li>
+  <li><a href="./index.html?page=docs.claw.keys">Keyboard shortcuts</a></li>
+  <li><a href="./index.html?page=docs.claw.mapping">Mapping of Daemon Interface to
+  GUI Elements</a></li>
+  <li><a href="#layout">GUI Layout</a></li>
+  <li><a href="#swallowing">Claw and X Windows (e.g. swallowing)</a></li>
+  <li><a href="#caveats">Caveats</a></li>
+</ul>
+
+
+<a name="what">
+<h3>What is it?</h3>
+
+<div class="content">Curved and pointy.  It's also a GTK 1.2-based
+graphical client to the Microraptor process startup / management
+system.  Claw is run on a client machine (usually a remote / offboard
+workstation, but occasionally the same machine as an mraptord daemon)
+in order to allow the user to start, stop, monitor, and interact with
+the processes defined in the current <a
+href="./index.html?page=docs.config.writeConfig">process
+configuration</a>.  These processes may run on any machine which is
+running mraptord.  An arbitrary number of Claw instances can be
+running at any one time (potentially listening to / interacting with
+the same processes) on any number of client machines.  The
+disconnection or failure of a client does not affect the operation of
+the daemon nor the robot processes in any way.  This was one of our
+major design goals: your control processes won't fail strangely just
+because the robot managed to outrun your wireless connection to
+it.</div>
+
+<div class="content">Incidentally, there isn't a good reason for the
+name <i>Claw</i>, except that dinosaurs have claws, and I was tired of
+typing "microraptor" all the time.  A suitable acronym will be devised
+at some point.  Feel free to suggest one.</div>
+
+<a name="capabilities">
+<h3>What Can Claw Do?</h3>
+
+<div class="content">Everything! ;-) Seriously, the quickest / easiest
+way to learn how to use claw is to play with the sucker.  Once you've
+defined a <a href="./index.html?page=docs.config.writeConfig">process
+configuration</a> and loaded it into the Microraptor network, just <a
+href="./index.html?page=docs.claw.args">start up Claw</a> and start
+poking around. If you're impatient, the <a
+href="./index.html?page=docs.claw.keys">Shortcut Reference</a> will
+give you a quick idea of what's available.</div>
+
+<div class="content">Claw implements the full commandset described in
+<a href="./index.html?page=docs.daemon#serialInterface">The Daemon
+Serial Interface</a>; see <a
+href="./index.html?page=docs.claw.mapping">Serial Interface -> GUI
+Elements Mapping</a> for an exhaustive (and we <i>do</i> mean
+exhausting!) list of the various ways to invoke the primitive
+commands.</div>
+
+<a name="walkthrough">
+<h3>Walkthrough</h3>
+
+<div class="content">Write me!</div>
+
+<div class="content">See the <a
+href="./index.html?page=docs.config.claw">Claw entry</a> on the <a
+href="./index.html?page=docs.config">Config</a> page for information
+on how to configure Claw's preferences.</div>
+
+<a name="layout">
+<h3>GUI Layout</h3>
+
+<div class="content">Write me!  This should be the quick reference to
+the Claw GUI: a numbered image with names for everything.  This will
+probably be sucked into the walkthrough.</div>
+
+<a name="swallowing">
+<h3>Claw and X Windows</h3>
+
+<div class="content">As a curiosity, we've implemented generic window
+swallowing within Claw: arbitrary X windows may be pulled into the
+Claw interface, and will be placed into a tab alongside the
+currently-viewed processes' output.</div>
+
+<div class="content">To initiate a swallow, either press <span
+class="ic">Ctrl+Z</span>, or choose the <span class="ic">Main->Swallow
+Window</span> menu option.  Your cursor will change to a small
+'+'-sign: click on any X window, and it will be swallowed into a new
+tab in Claw's process interaction area.  To unswallow (regurgitate?) a
+swallowed window, click on the <img src="./images/throwupButton.png">
+button above and to the right of the swallowed window.  To close a
+swallowed window, click on the <img src="./images/hideButton.png">
+button (this is equivalent to closing the window if it had remained
+under control of the window manager).</div>
+
+<div class="content">Due to some fundamental timing / race issues
+associated with generic swallowing, this GTK functionality has been
+deprecated in favor of the Plug/Socket interface (which requires
+explicit code in both processes), but we're keeping it in Claw because
+it's nifty :-).  You will occasionally see weird things such as empty
+frames left behind after a swallow; unfortunately, there's no reliable
+fix for this.  Further note that the window will be forced to the size
+of Claw's process interaction area, which may result in it looking
+rather odd.</div>
+
+<div class="content">Despite the occasional strangenesses, we still
+find this functionality useful, since it provides a quick way to bring
+all windows associated with control of your system together into a
+(more-or-less organized) whole.  This is no substitute for
+custom-crafted GUIs if you have a plethora of graphical readouts or
+controls you would like to use, but it is a quick-and-dirty temporary
+solution.</div>
+
+<a name="caveats">
+<h3>Implementation Caveats / Design Decisions</h3>
+
+<ol>
+   <li>The "idle time" display at the top of each process display
+   window and in the third column of the tree display is the number of
+   seconds since the process last output something to stdout.  This is
+   updated every time the client receives a stdout line.  Also, in the
+   event that you aren't subscribed to a given process, the client
+   pings the daemon for status information (including the last time a
+   line was printed out) every thirty seconds.</li>
+
+   <li>There are no guards against simultaneous interaction: you're
+   free to step on the toes of other claw users.</li>
+</ol>
+

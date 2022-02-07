@@ -1,0 +1,103 @@
+#!/usr/bin/perl -w
+
+$date = `date`;
+$date =~ /(\d\d):(\d\d):\d\d/;
+$timestr = "$1$2";
+
+$binDir = "/user/atacama/tests/current/bin";
+$logDir = "/user/atacama/tests/current/logs/mrlogs";
+$logBase = "roverExec_unfiltered_${timestr}_$$.log";
+$logFile = "$logDir/$logBase";
+system("ln -sf $logBase $logDir/roverExec_unfiltered_latest.log") and
+    die "ERROR: couldn't create symlink $logDir/roverExec_unfiltered_latest.log: $!\n";
+
+if (0) {
+    # short circuit filtering
+    exec("$binDir/litaMissionExec", @ARGV) or
+	die "ERROR: runLitaMissionExec: couldn't exec litaMissionExec: $!\n";
+}
+
+local(*CHILD); # declaration avoids warning
+
+print "runLitaMissionExec: running litaMissionExec with filtered output\n";
+print "runLitaMissionExec: (for unfiltered output see $logFile)\n";
+
+if ($pid = open(CHILD, "|-")) {
+    # parent writes to child
+
+    open(STDOUT, ">&CHILD") or
+	die "ERROR: runLitaMissionExec: couldn't redirect stdout to filter: $!\n";
+    open(STDERR, ">&CHILD") or
+	die "ERROR: runLitaMissionExec: couldn't redirect stderr to filter: $!\n";
+    exec("$binDir/litaMissionExec", @ARGV) or
+	die "ERROR: runLitaMissionExec: couldn't exec litaMissionExec: $!\n";
+} else {
+    # child reads from parent
+
+    die "ERROR: runLitaMissionExec: couldn't fork: $!" unless defined $pid;
+
+    open(LOG, ">$logFile") or
+	die "ERROR: runLitaMissionExec: couldn't open $logFile for writing: $!\n";
+    $print_while_indented = 0;
+    while (<STDIN>) {
+	print LOG;
+	if ($print_while_indented) {
+	    if (/^\s/) {
+		print;
+		next;
+	    }
+	    $print_while_indented = 0;
+	}
+	if (
+
+            ######################################################################
+            # WHITELIST + CONTINUE PRINTING PATTERN
+	    ######################################################################
+	    # (if this pattern matches, print and continue printing the following
+	    #  lines as long as they remain indented)
+
+	    0   #/ipc_assist::defineMsg:/
+
+	    ######################################################################
+
+	    ) {
+	    print;
+	    $print_while_indented = 1;
+	} else {
+
+	    ######################################################################
+	    # WHITELIST PATTERN
+	    ######################################################################
+
+	    next unless
+	      / ERROR:
+	      | Error:
+	      | WARNING:
+	      | Warning:
+	      | Publishing
+	      | Handling
+	      | is\ ready /x;
+
+	    ######################################################################
+	    # BLACKLIST PATTERN
+            ######################################################################
+
+	    next if
+		/ Compat\ for\ predicate
+		| is\ marked\ non-branching
+		| already\ in\ use;\ model\ still\ valid
+		| Zero\ gap\ in\ timeline /x;
+
+	    ######################################################################
+	    # OPERATIONS TO PERFORM BEFORE PRINTING
+            ######################################################################
+
+	    # remove initial expression in brackets []
+	    s/^\[[^\]]*\] //;
+
+	    ######################################################################
+
+	    print;
+	}
+    }
+}

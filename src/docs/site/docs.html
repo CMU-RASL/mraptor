@@ -1,0 +1,101 @@
+<meta name="description" content="Microraptor documentation:
+installation, configuration, and use.">
+<h2>Overview</h2> 
+
+<p>We provide a brief overview of Microraptor here; please see the
+more detailed pages linked above if you would prefer in-depth explanations.</p>
+
+<p>The Microraptor system consists of four binaries:
+
+<ul>
+ <li><b>central:</b>
+   The IPC central server that routes all message traffic between
+   clients and daemons (part of the <a
+   href="http://www.cs.cmu.edu/~ipc">IPC distribution</a>)
+ </li>
+ <li><b>mraptord:</b>
+   The daemon.  An instance of the daemon must be run on each
+   host where you want the system to manage processes.  Daemons
+   interact with clients by executing commands and forwarding
+   status information.
+ </li>
+ <li><b>claw:</b>
+   The graphical client.  Its interface allows you to run/kill
+   processes, interact with their consoles, etc.
+ </li>
+ <li><b>mrterm:</b>
+   A simple console-based client that allows you to connect
+   to a single daemon and issue the same commands that claw
+   generates through its interface.
+ </li>
+</ul>
+</p>
+
+<p>In order to minimally run microraptor you do the following (you may want
+to do this in separate xterms):
+
+<ol>
+ <li>start central</li>
+ <li>start an instance of mraptord</li>
+ <li>start one of the clients (claw or mrterm; claw is much
+ nicer)</li>
+</ol>
+</p>
+
+<p>Note that if you are running one of the binaries on a different
+host from where the central server is running, you need to say
+where central is located:
+<pre class="indent">
+$> setenv CENTRALHOST &lt;host central is on&gt;
+$> &lt;run binary&gt;
+</pre>
+</p>
+
+<p>In order to do anything useful, you will need to load a config
+file.  An example config file can be found in
+src/microraptor/daemon/example.config if you built from source, or <a
+href="/source/software/src/microraptor/daemon/example.config">here</a>.
+A config file can be loaded either with a command-line option to
+mraptord:</p>
+
+<pre class="indent">$> mraptord -c example.config </pre>
+
+<p>or by using the [Main]->[Load Local Config File] command in claw.
+</p>
+
+<p>All of the binaries print usage help if you specify the '-h' option.</p>
+
+
+<h3>Misc Documentation Files</h3>
+
+<p class="content"> Here are links to a few of the documentation files
+in the current Microraptor distribution.  Note that anything dealing with
+installation / startup is likely out of date - I haven't had time to
+rewrite these docs since the switch to RPMs for non-CMU installs.</p>
+<ul>
+  <li> 
+    <a href="/source/software/src/microraptor/docs/mraptor_manual.txt">
+      Main Microraptor documentation (incomplete) 
+    </a>.  Note that this has been superseded by this website, and may
+    become out of date over time.
+  </li>
+  <li>
+    <a href="/source/software/src/microraptor/scripts/mraptord.rpm.sysv.txt">
+       SysV startup script for mraptor
+    </a>
+    .  See script for customization details; you'll also need to set
+    up appropriate links in your rcX.d directories if you didn't
+    install from RPM.  This is the script which is installed as
+    /etc/init.d/mraptord if you install from the RPM.
+  </li>
+  <li> 
+    <a href="/source/software/src/microraptor/docs/ssh_tunnelling.txt">
+       SSH Tunnelling, X Windows, and Claw
+    </a>
+  </li>
+  <li> 
+    <a href="/source/software/src/microraptor/client/todo.txt">
+       Todo list for Claw (the GUI) 
+    </a>
+  </li>
+</ul>

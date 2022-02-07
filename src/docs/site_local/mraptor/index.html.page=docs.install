@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+                <tr><td>&nbsp;</td></tr>
+        <tr class="subSubLink">
+          <td class="subSubLinkCell">
+             <center>
+              <a class="subSubLink" href="index.html.page=docs.install">Overview</a>
+<a class="subSubLink" href="http://www.microraptor.org/index.html.page=docs.install.rpm">RPM</a>
+<a class="subSubLink" href="index.html.page=docs.install.srpm">SRPM</a>
+<a class="subSubLink" href="index.html.page=docs.install.source">Source</a>
+
+             </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="How to install Microraptor.">
+<h2>Installation Overview</h2>
+
+<p> As with anything, there are a number of ways to install
+Microraptor: RPM, SRPM, and build from source.  We recommend them in
+precisely that order: if an RPM is available for your system, use the
+sucker.  If not, try building a binary RPM from the SRPM (see <a
+href="index.html.page=docs.install.srpm">instructions</a>).  If
+you're successful, please drop us a copy to save others the work.  If
+RPMs just don't do it for you, build from the source using <a
+href="index.html.page=docs.install.source">these instructions</a>,
+although be warned: it can be a bit hairy.  If you would like to
+contribute a package for your distribution, we would be eternally
+grateful.</p>
+
+<p> Regardless, you need a working IPC installation before installing
+Microraptor.  We provide unofficial RPMs of the latest version of IPC
+<a href="index.html.page=download#ipc">here</a>.  If you prefer to
+obtain it straight from the source, go to <a
+href="http://www.cs.cmu.edu/~ipc">http://www.cs.cmu.edu/~ipc</a> for
+the latest version of IPC.  It's relatively easy to build, so don't
+worry about it too much. :-) </p>
+
+<p> Once you've installed Microraptor, continue on to the <a
+href="index.html.page=docs.config">configuration instructions</a>.</p>
+
+<h4>Installation Options:</h4>
+<ul>
+    <li><a href="http://www.microraptor.org/index.html.page=docs.install.rpm">Install from RPM</a></li>
+    <li><a href="index.html.page=docs.install.srpm">Build an RPM from a Source RPM</a></li>
+    <li><a href="index.html.page=docs.install.source">Build from source</a></li>
+</ul>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:26:19.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

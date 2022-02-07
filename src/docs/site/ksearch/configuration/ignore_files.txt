@@ -1,0 +1,13 @@
+/usr0/webguy/htdocs/brennan/mraptor/RPMS
+/usr0/webguy/htdocs/brennan/mraptor/SRPMS
+/usr0/webguy/htdocs/brennan/mraptor/source
+/usr0/webguy/htdocs/brennan/mraptor/siteSource
+/usr0/webguy/htdocs/brennan/mraptor/old
+/usr0/webguy/htdocs/brennan/mraptor/graveyard
+/usr0/webguy/htdocs/brennan/mraptor/ksearch
+/usr0/webguy/htdocs/brennan/mraptor/docs.claw.links.html
+/usr0/webguy/htdocs/brennan/mraptor/docs.config.links.html
+/usr0/webguy/htdocs/brennan/mraptor/docs.install.links.html
+/usr0/webguy/htdocs/brennan/mraptor/docs.links.html
+/usr0/webguy/htdocs/brennan/mraptor/download.links.html
+/usr0/webguy/htdocs/brennan/mraptor/related.links.html

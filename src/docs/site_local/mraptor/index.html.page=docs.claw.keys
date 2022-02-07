@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<meta name="description" content="Microraptor is a system providing
+easy control over distributed processes.  It was initially developed for
+the control of multirobot teams, but is of general use.  Microraptor
+supports a variety of Linux flavors, and may be extended to OS X at
+some point.">
+<title>Microraptor: A Distributed Process Management and Control System</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+            <a class="subLink" href="index.html.page=docs">Overview</a>
+<a class="subLink" href="index.html.page=docs.install">Install</a>
+<a class="subLink" href="index.html.page=docs.config">Configure</a>
+<a class="subLink" href="index.html.page=docs.daemon">Daemon</a>
+<a class="subLink" href="index.html.page=docs.mrterm">MRTerm</a>
+<a class="subLink" href="index.html.page=docs.claw">Claw</a>
+<a class="subLink" href="index.html.page=docs.libraries">Libs</a>
+<a class="subLink" href="index.html.page=docs.guts">Guts</a>
+<a class="subLink" href="index.html.page=docs.faq">FAQ</a>
+            </center>
+          </td>
+        </tr>
+                <tr><td>&nbsp;</td></tr>
+        <tr class="subSubLink">
+          <td class="subSubLinkCell">
+             <center>
+              <a class="subSubLink" href="index.html.page=docs.claw">Overview</a>
+<a class="subSubLink" href="index.html.page=docs.claw.args">Arguments</a>
+<a class="subSubLink" href="index.html.page=docs.claw.keys">Keys</a>
+<a class="subSubLink" href="index.html.page=docs.claw.mapping">Mapping</a>
+
+             </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Listing of keyboard shortcuts for
+claw, the GTK-based Microraptor client.">
+<h2>Claw's Keyboard Shortcut Reference</h2>
+
+<div class="content">We have made a concerted effort to provide
+reasonably intuitive key bindings for as many Claw commands as
+possible.  All of Claw's functionality is available through the main
+menu bar, and key bindings are displayed within the menus as a
+reminder.  The rather unintuitive bindings of some of these options
+are forced by the hardcoded bindings in the entry widget (used to
+provide input to processes' stdin), since we avoid conflicts so as to
+make the keybindings consistent throughout the program.  Note that
+much of this functionality is also available in the context menus
+(i.e. right-click menus).</div>
+
+<center>
+<table class="content" border="0" width="80%">
+  <tr>
+      <td class="head">Shortcut</td>
+      <td class="headLeft">Description</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+R</b></td>
+      <td>Run currently selected process(es) <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+T</b></td>
+      <td>Terminate (kill) currently selected process(es) <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+S</b></td>
+      <td>Show (view) currently selected process(es) <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+M</b></td>
+      <td>Mask (hide) currently selected process(es) <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+O</b></td>
+      <td>Switch to Overview tab (shows all currently viewed
+      processes' output)</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+Y</b></td>
+      <td>Update status of currently selected process(es) <a
+      href="index.html.page=docs.claw.keys#curSel">[*]</a>.  Note that this will have little to no
+      effect in most cases; Claw now automatically updates process
+      state every 30 seconds.</td>
+  </tr>
+  <tr class="bottomLine">
+      <td colspan="2" class="bottomLine">For the above shortcuts, Shift+Ctrl+key performs
+      the given action for all known processes, rather than the
+      currently selected ones.</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+Tab</b></td>
+      <td>Switch to the next tab in the process interaction area (note
+      that this will change the currently selected process, unless the
+      <a
+      href="index.html.page=docs.config.claw#tieSelToTab">tie
+      seletion to tab</a> Claw preference has been changed to '0').</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+Shift+Tab</b></td>
+      <td>Switch to the previous tab in the process interaction area
+      (note that this will change the currently selected process,
+      unless the <a
+      href="index.html.page=docs.config.claw#tieSelToTab">tie
+      seletion to tab</a> Claw preference has been changed to
+      '0').</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+L</b></td>
+      <td>Listen (subscribe to) currently selected process(es) output <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+N</b></td>
+      <td>u(N)subscribe from currently selected process(es) output <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Alt+M</b></td>
+      <td>Clear the current process' output buffer (this is equivalent
+      to <span class="ic">clear</span> in an xterm).</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+G</b></td>
+      <td>Set process confi(G)uration for currently selected process <a href="index.html.page=docs.claw.keys#curSel">[*]</a></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+I</b></td>
+      <td>Load configuration file stored on cl(I)ent machine</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+J</b></td>
+      <td>Reload most recently loaded client-local config file.  This
+      reloads from disk, and will thus pick up any changes.</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Shft+Ctrl+I</b></td>
+      <td>Load a configuration file stored on a daemon machine</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+Z</b></td>
+
+      <td>Swallow an arbitrary X window into a tab (after selecting
+      this, your mouse cursor will change; the next window you click
+      on will be swallowed).  You may later unswallow it; this
+      provides a simple way to avoid screen clutter and bring all
+      system components together.</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+P</b></td>
+      <td>Open the claw preferences dialog</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+Q</b></td>
+      <td>Quit the client</td>
+  </tr>
+  <tr>
+      <td colspan="2" class="topLine">Within the entry line for a given process, most
+      Emacs-ish keybindings hold (since they're hard-coded into the
+      GTK widget, they force some of the (rather non-intuitive)
+      bindings above):</td>
+  <tr>
+      <td class="shortCell"><b>Ctrl+A</b></td>
+      <td>Go to beginning of line</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+B</b></td>
+      <td>Move back one character</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+C</b></td>
+      <td>Copy to clipboard</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+D</b></td>
+      <td>Delete forward one character</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+E</b></td>
+      <td>Move to end of line</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+F</b></td>
+      <td>Move forward one character</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+H</b></td>
+      <td>Delete backward one character</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+K</b></td>
+      <td>Delete from cursor to end of line</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+U</b></td>
+      <td>Delete line</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+V</b></td>
+      <td>Paste from clipboard</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+W</b></td>
+      <td>Delete backward one word</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Ctrl+X</b></td>
+      <td>Cut to clipboard</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Alt+B</b></td>
+      <td>Move backward one word</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Alt+D</b></td>
+      <td>Delete forward one word</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><b>Alt+F</b></td>
+      <td>Move forward one word</td>
+  </tr>
+</table>
+</center>
+
+<a name="curSel"> <div class="content"><b>[*] Note:</b> "currently
+selected process(es)" refers to the zero or more processes highlighted
+in the process tree widget in the upper-left pane of the GUI.</div>
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: June 23, 2006 at 21:35:10.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

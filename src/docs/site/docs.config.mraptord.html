@@ -1,0 +1,169 @@
+<meta name="description" content="Configuring Microraptor for your use.">
+<h2>Configuring mraptord</h2>
+
+<div class="content">mraptord doesn't require much direct
+configuration, since most information is stored in the process config
+file loaded at daemon start or loaded by a client at some later
+point.  However, there are a number of choices to be made about how
+and where to start the daemon (mraptord).  These vary depending on
+whether you installed from an RPM (and thus have a SysV startup system
+already in place), or built from source.  See below for help on:</div>
+<ul>
+  <li><div><a href="#rpmConfig">Configuring an RPM Installation</a></div></li>
+  <li><div><a href="#mraptordBoot">Running a non-RPM mraptord on
+  Boot</a></div></li>
+  <li><div><a href="#mrapRestart">Configuring mraptord to
+  Automatically Restart</a></div></li>
+</ul>
+
+<a name="rpmConfig">
+<h4>Configuring an RPM Installation</h4>
+
+<div class="content">If you installed the <i>mraptor-server</i> RPM ,
+mraptord is already set up in your SysV (/etc/rc.d and /etc/init.d)
+startup system, and will come up on boot.  If you would prefer that it
+not start on boot, simply <span class="ic">chkconfig mraptord
+off</span> as root.  Regardless, you may start or stop mraptord by
+running <span class="ic">/etc/init.d/mraptord start</span> or <span
+class="ic">/etc/init.d/mraptord stop</span>.  Note that after
+installation mraptord has not been started; you will need to do so by
+hand (or reboot) after configuring /etc/mraptord.conf:</div>
+
+<div class="content">The behavior of the /etc/init.d/mraptord script
+is controlled by the contents of <a
+href="./source/software/src/microraptor/scripts/mraptord.rpm.conf.txt">/etc/mraptord.conf</a>.
+Within mraptord.conf, you may set:</div>
+
+<ul>
+  <li>(Optional) The path to IPC's central (defaults to
+  /usr/bin/central, which is where the <a
+  href="./index.html?page=download#ipc">IPC RPM</a> installs it)</li>
+  <li>The path to the mraptord binary (you will never need to change
+  this if you installed from an RPM)</li>
+  <li>(Optional) The path to a process configuration file to load on
+  startup</li>
+  <li> The daemon's stance: one of 'primary' or 'secondary'. 'primary'
+  implies that central should be launched on this machine and the
+  specified process configuration file should be loaded.  If 'primary'
+  is set, the path to central and the path to a configuration file are
+  no longer optional. A setting of 'secondary' results in launching only the daemon.</li>
+  <li> The host and port of IPC's central</li>
+  <li> The user to run mraptord as</li>
+  <li> A file to source within bash before launching mraptord; usually
+  used to set up environment variables common to all processes.</li>
+</ul>
+
+<div class="content">The file itself contains extensive documentation
+of the options; see the <a
+href="./source/software/src/microraptor/scripts/mraptord.rpm.conf.txt">current
+CVS version</a> for an example.</div>
+
+<div class="content">Once you've finished configuration, start the
+daemon by running <span class="ic">/etc/init.d/mraptord start</span>
+as root.  Examine /tmp/mraptordLog to see if there were any problems
+starting up.</div>
+
+<a name="mraptordBoot">
+<h4>Running a non-RPM mraptord on Boot</h4>
+
+<p>So, you built from source, and want mraptord to come up on boot,
+eh?  You can always install mraptord into the SysV setup by hand, if
+you'd like:</p>
+
+<ol>
+  <li><div>Copy <a
+  href="./source/software/src/microraptor/scripts/mraptord.rpm.sysv.txt">scripts/mraptord.rpm.sysv</a>
+  to /etc/init.d/mraptord.</div></li>
+  <li>Ensure that it's executable: <span class="ic">chmod a+rx
+  /etc/init.d/mraptord</span></li>
+  <li>Install it into the rc.d diretories: <span
+  class="ic">/sbin/chkconfig --add mraptord</span></li>
+  <li><div>Copy the <a
+  href="./source/software/src/microraptor/scripts/mraptord.rpm.conf.txt">scripts/mraptord.rpm.conf</a>
+  file to /etc/mraptord.conf, and configure as detailed <a
+  href="#rpmConfig">above</a></div></li>
+</ol>
+
+<p>Alternatively, the quick and dirty approach is to just add mraptord
+to rc.local, which is run after all other system startup tasks are
+completed:</p>
+
+<div class="indent">
+
+<p>We will run a copy of IPC's central on the nonstandard port 1382 for
+all mraptord-claw communications, leaving port 1381 free for the users
+to run their own central.  It is desirable to not have mraptord and
+user traffic over the same central to allow the users flexibility in
+restarting "their" central without killing the microraptor system.</p>
+
+<p>Assuming that /etc/rc.local is a tcsh script, add these lines to
+the machine that will run central (the "primary" mraptor machine),
+with the obvious substitutions (when cutting and pasting, beware: your
+browser may break some lines to make them fit):</p>
+
+<div class="ic">
+# -lx -u ensures central doesn't block on input or output via stdin/stdout<br>
+set path = (. $path)<br>
+sudo -H -u mraptor_user -c "/path/to/IPC/bin/central -s -lx -u -p1382 >& /dev/null &"<br>
+sudo -H -u mraptor_user -c "/path/to/mraptord --centralhost localhost:1382 -c /path/to/config/file/my.config  >& /dev/null &"<br>
+</div>
+
+<p>On all other daemon machines, add the following to /etc/rc.local,
+again with the obvious substitutions:</p>
+
+<div class="ic">
+set path = (. $path)
+sudo -H -u mraptor_user -c "/path/to/mraptord --centralhost centralhostname:1382 >& /dev/null &"
+</div>
+
+<p>You <i>can</i> load a config file on startup for more than one
+daemon, but for your sanity a single centralized config is highly
+recommended (it doesn't necessarily have to be on the machine where
+central is running).  Additional config files will be merged in using
+Microraptor's merging mechanism (which will be explained in detail <a
+href="#configMerging">below</a> once we write that section).
+Basically, overlapping entries from config files loaded later
+overwrite entries from config files loaded earlier, in order to
+maintain a consistent configuration system-wide.</p>
+
+</div>
+
+<a name="mrapRestart">
+<h4>Configuring mraptord to Automatically Restart</h4>
+
+<div class="content">In general, there's no need to restart mraptord
+during normal operations, and the default SysV installation works just
+fine.  However, on occasion you will want to restart the entire daemon
+network, usually as a result of either an mraptord bug or a desire to
+reset the process config file (recall that additional configs are
+merged into the existing loaded config, so there's no way to remove a
+process entry at runtime).  Bringing the daemon network down is
+trivial: an <span class="ic">/etc/init.d/mraptord stop</span> on the
+primary machine will shut down the central being used by all the
+daemons, and cause them to kill their child processes and quit.
+However, getting all the daemons back up again is a bit of a pain: you
+need to ssh to each of the machines in the network to manually start
+the daemon.</div>
+
+<div class="content">Enter <a
+href="./source/software/src/microraptor/scripts/mrapstarter">mrapstarter</a>!
+mrapstarter is a ridiculously simple bash script run via cron which
+just checks if mraptord is running; if not, it attempts to start it.
+Thus, you may stop the entire network via a <span
+class="ic">/etc/init.d/mraptord stop</span> on the primary machine,
+make your changes, and simply restart the primary daemon (<span
+class="ic">/etc/init.d/mraptord start</span>).  All the secondary
+daemons will start up automatically within a minute.
+As of 1.1.2, mrapstarter is not included in the RPM, but I'll add it
+once the CVS server gets back from Chile. :-)  For now, install it
+thusly on all secondary daemon machines:</div>
+
+<ol>
+  <li> Download it
+  <a href="./source/software/src/microraptor/scripts/mrapstarter">here</a></li>
+  <li> Drop it in /usr/bin</li>
+  <li> Ensure that it is executable (<span class="ic">chmod a+rx
+  /usr/bin/mrapstarter</span>) </li>
+  <li> Run it once a minute via cron (add the line <span class="ic">*
+  * * * * root mrapstarter</span> to /etc/crontab) </li>
+</ol>

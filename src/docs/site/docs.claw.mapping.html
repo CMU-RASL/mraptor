@@ -1,0 +1,132 @@
+<meta name="description" content="The relationship between the
+mraptord serial interface and the claw client GUI.">
+<h2>Claw: Serial Interface -> GUI Pathway Mapping</h2>
+
+<div class="content">To parallel the <a
+href="./index.html?page=docs.daemon#commandSyntax">Daemon Command
+Syntax</a>, we provide here an exhaustive mapping of daemon primitive
+interface tokens to Claw interaction pathways.  This is unlikely to be
+that useful to the end user, but does provide a quick reference to all
+the different ways to access Microraptor's functionality.</div>
+
+<table class="content" border="0">
+  <tr>
+     <td class="head">&nbsp;&nbsp;&nbsp;&nbsp;Command&nbsp;&nbsp;&nbsp;&nbsp;</td>
+     <td class="headLeft">GUI Pathways</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#cancel"><b>cancel</b></a></td>
+      <td>Not implemented / not needed</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#dhelp"><b>dhelp</b></a></td>
+      <td> Not implemented / not needed</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#dload"><b>dload</b></a></td>
+      <td>
+         <ol class="noindent">
+           <li>Shift+Ctrl+I</li>
+           <li>Main->Load remote config file</li>
+         </ol>
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#dquit"><b>dquit</b></a></td>
+      <td>Main->Kill Server Daemon</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#get"><b>get status</b></a></td>
+      <td>
+         <ol class="noindent">
+           <li>Monitoring->Get Status [of all]</li>
+           <li>Ctrl+Y (currently selected processes)</li>
+           <li>Shift+Ctrl+Y (all known processes)</li>
+           <li>Right-click process entry in tree</li>
+           <li>Right-click proccess' output display</li>
+         </ol>
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#get"><b>get clock</b></a></td>
+      <td>Automatically subscribed at connection time</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#get"><b>get config</b></a></td>
+      <td>
+         <ol class="noindent">
+           <li>Main->Set Process Config</li>
+           <li>Ctrl+G</li>
+           <li>Right-click process entry in tree</li>
+         </ol>
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#ipc"><b>ipc</b></a></td>
+      <td>Not implemented</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#kill"><b>kill</b></a></td>
+      <td>
+         <ol class="noindent">
+           <li>Signals-> Kill [Selected | All]</li>
+           <li>Ctrl+T (currently selected processes)</li>
+           <li>Shift+Ctrl+T (all known processes)</li>
+           <li>Right-click process entry in tree</li>
+           <li>Bomb button in output display</li>
+           <li>Right-click proccess' output display</li>
+         </ol>
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#restart"><b>restart</b></a></td>
+      <td>
+        Not implemented; a kill then run accomplishes the same thing.
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#run"><b>run</b></a></td>
+      <td>
+         <ol class="noindent">
+           <li>Signals-> Run [Selected | All]</li>
+           <li>Ctrl+R (currently selected processes)</li>
+           <li>Shift+Ctrl+R (all known processes)</li>
+           <li>Right-click process entry in tree</li>
+           <li>Running stick guy button in output display</li>
+           <li>Right-click process' output display</li>
+         </ol>
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#run_slave"><b>run_slave</b></a></td>
+      <td>
+        Not implemented / not needed.
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#set"><b>set config</b></a></td>
+      <td>
+         <ol class="noindent">
+           <li>Automatically fired on loading of config file
+               (Main->Load [Local | Remote] Config File)</li>
+           <li>Main->Set Process Config</li>
+           <li>Ctrl+C</li>
+           <li>Right-click process entry in tree</li>
+         </ol>
+      </td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#stdin"><b>stdin</b></a></td>
+      <td>Type in the one-line box at the bottom of a process view and
+      press [enter].</td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#sub"><b>sub</b></a></td>
+      <td></td>
+  </tr>
+  <tr>
+      <td class="shortCell"><a href="./index.html?page=docs.daemon#unsub"><b>unsub</b></a></td>
+      <td></td>
+  </tr>
+</table>
+

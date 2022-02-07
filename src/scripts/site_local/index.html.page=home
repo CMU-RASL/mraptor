@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- TODO:
+  Finish Claw docs
+
+  Why are the first elements of some lists being kicked down a
+  half-line if I don't wrap the contents in a <div>?
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title></title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<link rel="shortcut icon" type="image/png" href="mraptor_favicon.png">
+<link rel="icon" type="image/png" href="mraptor_favicon.png">
+<script src="ksearch/database.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD INDEX // --></script>
+<script src="ksearch/search.js" language="Javascript1.2" type="text/javascript"><!-- // LOAD SEARCH FUNCTIONS // --></script>
+</head>
+
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="100%" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td valign="top" align="center">
+            <img src="images/title.png">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <center>
+            <a class="mainLink" href="index.html.page=home">Home</a>
+            <a class="mainLink" href="index.html.page=download">Download</a>
+            <a class="mainLink" href="index.html.page=docs">Docs</a>
+            <a class="mainLink" href="index.html.page=stories">Stories</a>
+            <a class="mainLink" href="index.html.page=related">Related</a>
+            <a class="mainLink" href="index.html.page=history">History</a>
+            <a class="mainLink" href="index.html.page=contact">Contact</a>
+            </center>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr class="subLink">
+          <td class="subLinkCell">
+            <center>
+                        </center>
+          </td>
+        </tr>
+              </table>
+    </td>
+    <td align="right" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td><img src="images/header-right.png"></td></tr>
+	<tr>
+            <td>
+              <center>
+                <form onsubmit="search(this.query.value);return false;" name="searchform">
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                          <center>
+                            <input type=text size=18 name="query" onfocus="this.select();">
+                          </center>
+                        </td>
+                        <td width="25%">
+                          <center>
+                            <div class="submit" onclick="javascript:document.searchform.onsubmit();">Search</div>
+                          </center>
+                        </td>
+                     </tr>
+                    <!--
+                    <input type=submit value=Search>
+                    &nbsp; 
+ 		    <B><A HREF="help.html" target="searchmain"><font color=yellow>Tips</font></A></B>
+                    -->
+                  </table>
+                </form>
+              </center>
+            </td>
+          </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="content" colspan="2">
+      <div id="mainBody">
+      <meta name="description" content="Overview of Microraptor's features.">
+
+<h2>Welcome</h2>
+
+<p class="content">Welcome to the home of Microraptor: a robust,
+distributed process management system!  Microraptor's purpose is to
+provide reliable, flexible, and scalable process control for a
+development or deployment team working with many processes spread
+across an arbitrary number of computers.  While initially created at
+the <a href="http://www.ri.cmu.edu/">Robotics Institute</a> of <a
+href="http://www.cmu.edu">Carnegie Mellon University</a> to ease
+development and deployment of software for field and team robotics,
+Microraptor more generally supports process management
+in distributed systems.</p>
+
+<h3>Features</h3>
+
+<ul>
+ <li><b>Manage processes</b> across multiple machines</li>
+ <li><b>Monitor status</b> of all processes at a glance</li>
+ <li><b>Interact</b> with process consoles:
+ <ul>
+   <li>Tabbed windows manage clutter when there are many processes</li>
+   <li>Can subscribe/unsubscribe to process console output dynamically,
+   which helps manage bandwidth when processes are running on a
+   remote host with a low-bandwidth connection</li>
+ </ul>
+ </li>
+ <li><b>Configure</b> how to run processes using a flexible config file format</li>
+ <li><b>Multiple users</b> can view/manage the same processes:
+ <ul>
+   <li>User interface clients
+      can be dynamically started, killed, or disconnected from the network without
+      affecting managed processes</li>
+   <li>Clients and daemons automatically synchronize their configuration, so
+   a configuration file only needs to be loaded once</li>
+ </ul>
+ </li>
+ 
+ <li><b>Process dependencies</b> can be specified:
+ <ul>
+   <li>Detection of when a process is "ready" based on its console output</li>
+   <li>Running process Y will result in all processes Y depends on
+   automatically running, with Y only running when all depended-upon
+   processes are "ready"</li>
+   <li>Dependency links can span processes on multiple hosts</li>
+ </ul>
+ </li>
+ <li><b>Log</b> process console output to process-local disk, independent of
+ whether it's being observed at runtime</li>
+ <li><b>Easily installed</b> on systems which support RPMs and a
+ SysV-style startup system (such as RedHat), Microraptor is installed
+ and configured as a daemon 'out of the box'.  A Microraptor network
+ can be established from scratch in under half an hour; most of that
+ time is needed to write the configuration file.</li>
+</ul>
+
+<h3>Requirements</h3>
+
+<p class="content">A Microraptor system includes one or many host
+computers that can play different roles.  Some hosts (e.g. embedded
+computers onboard robots) run managed processes; each of those hosts
+must be able to run the Microraptor daemon, mraptord.  Other hosts
+(e.g. user laptops) are used as interfaces for people to command and
+monitor managed processes; those hosts must be able to run Microraptor
+clients, claw or mrterm.  If you like, a single host computer can run
+both daemons and clients.  Also, it's no problem for a single
+Microraptor network to contain host computers running different
+operating systems.</p>
+
+<p class="content">Basic platform requirements:</p>
+<ul>
+  <li> <div class="content"><b><a href="index.html.page=docs.daemon">mraptord</a></b>
+       - Primarily developed for Linux, also ported to Windows
+       running under <a href="http://www.cygwin.com/">Cygwin</a>.  mraptord
+       has been used successfully with long uptimes on both
+       platforms, but some of the advanced features are untested under Cygwin.</div></li>
+  <li> <div class="content"><b><a href="index.html.page=docs.claw">claw</a>
+       graphical client</b>
+       - Currently runs only under Linux, but still works on older
+       distributions going back to RedHat 7.2.</div>
+
+       <div class="content">Because claw is an X windows application,
+       in a pinch you can also run claw on a remote Linux host and send
+       the display to your Windows or Mac OS X host if it runs an X server.
+       Unfortunately, claw with remote X display sometimes crashes
+       (although client crashes do not affect managed processes.)</div>
+
+       <div class="content">We hope to develop an improved graphical
+       client that will also run natively under Mac OS X, stay tuned.</div></li>
+  <li> <div class="content"><b><a href="index.html.page=docs.mrterm">mrterm</a>
+       console client</b> - like mraptord, mrterm runs under Linux and Windows/Cygwin.
+       It is also easy to run remotely under ssh.
+       You can use mrterm as your primary client in a pinch, but for day-to-day
+       use you will want to have a graphical client available.
+       </div></li>
+</ul>
+
+<h3>Support</h3>
+
+<p class="content">Please note that while the developers of
+Microraptor (Trey Smith and Brennan Sellner) are more than happy to
+provide access to the source code and the RPMs we build, we are both
+full-time graduate students at the RI, and do not have the resources
+to provide technical support.  Please feel free to <a
+href="index.html.page=contact">contact us</a>, but be advised that
+we may not have time to give you the level of assistance we would like
+to.</p>
+
+<!-- A LEGAL NOTE WOULD BE NICE: CAN WE GPL THIS? -->
+    </div> <!-- end mainBody -->
+    </td>
+  </tr>
+    <tr>
+    <td class="content" colspan="2">
+      <hr>
+      <table><tr><td align="left">Last modified: November 16, 2006 at 14:13:06.    </td><td align="right"><a href="http://www.microraptor.org">Microraptor on the Web</a></td></tr></table>
+    </td>
+  </tr>
+  </table>
+
+</body> </html>

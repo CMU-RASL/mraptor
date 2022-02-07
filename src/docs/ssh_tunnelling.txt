@@ -1,0 +1,55 @@
+Quick & Dirty: How to use microraptor with a firewall
+
+Scenario:
+  The machines running claw (the graphical microraptor client) are
+  running behind a firewall with respect to the machines running
+  mraptord (the daemon).  This presents no problems except when the
+  client wants to view an X window created by one of the processes
+  controlled by the microraptor system.  In this case, a simple
+  setting of the DISPLAY environment variable from within the config
+  section for the process in question will not suffice without port
+  forwarding magic in the firewall, which is a real pain.  The
+  solution is to establish an ssh tunnel from the client (claw)
+  machine to each daemon (mraptord) machine from which graphics are
+  desired.  At the moment, the tunnels must be created by hand; if
+  someone wanted to point me to a C/C++ library that supports
+  high-level ssh foo such as tunnelling, I would be more than happy to
+  integrate the creation and destruction of the tunnels into claw
+  itself.  Enough words already, get to the point, eh?
+
+Steps:
+  1. On client machine (behind firewall), create the tunnel thusly:
+
+     ssh -f -X user@daemon_machine "env | grep DISPLAY; sleep 9999h"
+
+     NOTES:
+        - The "-f" forks it into the background; you'll need to "ps ax
+          | grep "ssh -f"" to get the PID and kill it by hand when you
+          want the tunnel to go away.
+        - "user" MUST be the same user on daemon_machine as mraptord
+          is running as; otherwise, the wrong .Xauthority file will be
+          used and you'll get a "bad authentication" error in the
+          xterm where you created the tunnel when you try to run
+          something graphical via microraptor.
+        - If mraptord is being started on boot via a sudo command, be
+          sure to include the "-H" switch.  This changes the home
+          directory, and is necessary for mraptord to use the correct
+          .Xauthority file for graphics forwarding.
+
+  2. The display variable will be printed out in a couple seconds in
+     the terminal you started the tunnel in.  Note what it is; it
+     should be of the form "localhost:10.0" or
+     "daemon.machine.edu:10.0", depending on daemon_machine's sshd_config.
+
+  3. On client machine, run claw thusly:
+
+     claw --ssh-display daemon_machine_short_name displaystring
+
+     where daemon_machine_short_name is the hostname of the daemon
+     machine (i.e. for "foo.coolgroup.cs.edu", it would be "foo") and
+     displaystring is what you noted in step 2.
+
+  And that's it!  Any processes whose DISPLAY variable has been set to
+  "%c" will now tunnel through to the client who issued the "run" command.
+
+- Brennan Sellner, brennan+microraptor@cmu.edu

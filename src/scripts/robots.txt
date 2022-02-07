@@ -1,0 +1,5 @@
+# Visiting ZipSearchResults generates a (potentially very large) zip
+# file.  Bad robot!
+
+User-agent: *
+Disallow: /Pictures/ZipSearchResults

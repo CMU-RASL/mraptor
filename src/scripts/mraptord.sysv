@@ -1,0 +1,135 @@
+#!/bin/bash
+#
+# mraptord      This shell script takes care of starting and stopping 
+#                microraptor, SysV-style
+
+# You will need to customize the "customize me" block below for
+# your local user and location of microraptor and your system's config
+# file.  Be sure to set "stance" to "primary" or "secondary" depending
+# on whether this machine should start central and load a config file
+# or not.
+
+# Note that if you use the mrapins install script, all the relevant variables
+# below will be filled in for you.
+
+# description:  mraptord is the daemon component of microraptor, a process 
+#               launch and monitoring tool.
+# processname: /home/challenge/external/microraptor/software/bin/linux2/mraptord 
+# config: /home/challenge/challenge/src/Startup/microraptor.config 
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# CUSTOMIZE ME HERE
+centralProg=
+mraptordProg=
+mraptordConfig=
+centralhost=
+user=
+stance=
+prelaunchfile=
+prelaunchshell=
+
+if ! [ -e $mraptordProg ] ; then
+    echo_failure
+    echo "Can't find mraptord executable."
+    exit 0
+fi
+
+RETVAL=0
+
+start () {
+    # Do we have central?
+    if [ $stance = "primary" ] ; then
+	if ! [ -e $centralProg ] ; then
+	    echo_failure
+	    echo "Can't find central executable."
+	    return 1
+	fi
+    fi
+
+    export PATH=.:$PATH
+    export CENTRALHOST=$centralhost
+
+    
+    if [ ${#prelaunchfile} -eq 0 ]; then
+        prelaunchfilestr=""
+        prelaunchfilestr2=""
+    else
+        prelaunchfilestr="-s -- -cf "
+        prelaunchfilestr2=" source $prelaunchfile; "
+    fi
+    
+    configfilestr=""
+    
+    if [ $stance = "primary" ] ; then
+       # start central
+       echo -n "Starting central: "
+       sudo -H -u $user "$centralProg -s -lx -u -p1382 >& /dev/null &"
+       echo "done."
+
+       configfilestr=" -c ${mraptordConfig} "
+    fi
+
+    # start daemon
+    echo -n "Starting mraptord: "
+    rm -f /tmp/mraptordLog
+    #sudo -H -u $user -s $prelaunchshell "${prelaunchfilestr}$mraptordProg -d ${configfilestr} >& /tmp/mraptordLog &"
+    sudo -H -u $user ${prelaunchfilestr} " ${prelaunchfilestr2}$mraptordProg -d --centralhost ${centralhost} ${configfilestr} >& /tmp/mraptordLog &"
+    echo "done."
+
+    #daemon /home/challenge/external/microraptor/software/bin/linux2/mraptord -c /home/challenge/challenge/src/Startup/microraptor.config -w -r central
+    RETVAL=$?
+
+    [ $RETVAL = 0 ] && touch /var/lock/subsys/mraptord
+    return $RETVAL
+}
+
+stop () {
+    # stop daemon
+    echo -n "Stopping mraptord: "
+    killproc $mraptordProg
+    RETVAL=$?
+    echo
+    if [ $stance = "primary" ] ; then
+	echo -n "Stopping central: "
+	killproc $centralProg
+    fi
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && rm -f /var/lock/subsys/mraptord
+    return $RETVAL
+}
+
+restart () {
+    stop
+    start
+    RETVAL=$?
+    return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status $mraptordProg
+	RETVAL=$?
+	;;
+    restart)
+	restart
+	;;
+    condrestart)
+	# only restart if it is already running
+	[ -f /var/lock/subsys/mraptord ] && restart || :
+	;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+        RETVAL=1
+esac
+
+exit $RETVAL

@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# Automatically build a tarball of the microraptor source in a form suitable
+#  for release.  A tarball will be created that contains a copy of mrapins
+#  and a tarball of the source tree.
+# NOTE: Be sure to run this from within the scripts directory of the source
+#  tree you wish to release!
+# NOTE: Be sure you've set the necessary environment variables for a build
+#  before running this!
+#
+# I haven't spent the time to make this terribly general, since only the 
+#  developers will be using it, and they can obey the above notes trivially.
+
+# Overview:
+#  1. Copy the tree
+#  2. Clean the tree
+#  3. (optional) Remove CVS directories
+#  4. Tar up src
+#  5. Copy out mrapins
+#  6. Stick src and mrapins together
+#  7. Clean up
+
+keepcvs=0
+
+set -- `getopt -u --longoptions keepcvs -- k  "$@"` || {
+    usage
+}
+
+if [ $# -gt 1 ] ; then
+    while :
+    do
+        # Can't figure out how to let cases fall through...
+        case "$1" in
+        -k)               keepcvs=1 ;;
+        --keepcvs)        keepcvs=1 ;;
+        --)               break ;;
+        esac
+        shift
+    done
+    shift
+fi
+
+# Remove old builds that didn't clean up
+cd ../../..
+rm -rf ./release_in_progress
+mkdir release_in_progress
+
+####################################
+# 1) Copy the tree
+####################################
+echo "Copying source tree..."
+#cp -r ./src ./release_in_progress/
+mkdir ./release_in_progress/src/
+cp -a ./src/{microraptor,atacama_env} ./release_in_progress/src/
+
+####################################
+# 2) Clean the tree
+####################################
+echo "Cleaning tree..."
+cd release_in_progress/src/microraptor
+make -s clean
+
+####################################
+# 3) (optional) Remove CVS directories
+####################################
+if [ $keepcvs -eq 0 ] ; then
+    echo "Removing CVS directories..."
+    # Down to src
+    cd ..
+    # Add -depth to avoid errors when directories get nixed
+    find . -depth -name CVS -exec rm -rf \{\} \;
+    # Back up to avoid confusion
+    cd microraptor
+fi
+
+####################################
+# 4) Tar up src
+####################################
+echo "Tarring src..."
+dt=`date +%m_%d_%Y`
+hn=`hostname -s`
+id="${hn}_${dt}"
+# Down below src
+cd ../..
+tar -czf mraptor_src_snap_${id}.tgz src
+cp mraptor_src_snap_${id}.tgz ..
+
+####################################
+# 5) Copy out mrapins
+####################################
+echo "Saving mrapins..."
+cp ./src/microraptor/scripts/mrapins .
+
+####################################
+# 6) Stick src and mrapins together
+####################################
+echo "Building final executable..."
+
+cat ./mrapins ./mraptor_src_snap_${id}.tgz > mraptor_release_snap_${id}.sh
+chmod a+x mraptor_release_snap_${id}.sh
+
+####################################
+# 7) Clean up
+####################################
+echo "Cleaning up..."
+mv ./mraptor_release_snap_${id}.sh ..
+cd ..
+td=`pwd`
+rm -rf release_in_progress
+cd src/microraptor/scripts
+echo "Release executable is at ${td}/mraptor_release_snap_${id}.sh."
+
+echo "All done!"

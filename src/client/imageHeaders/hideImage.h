@@ -1,0 +1,45 @@
+/***** tell emacs we use -*- c++ -*- style comments *****
+ * $Revision: 1.4 $ $Author: dom $ $Date: 2004/04/28 18:58:51 $
+ *
+ * COPYRIGHT 2004, Carnegie Mellon University 
+ *
+ * PROJECT: Exploration Robotics (Life in the Atacama)
+ *
+ * MODULE:
+ *
+ * FILE: microraptor/client/imageHeaders/hideImage.h
+ *
+ * DESCRIPTION:
+ *
+ ********************************************************/
+/* XPM */
+const char * hideImage_xpm[] = {
+"16 16 4 1",
+" 	c None s None",
+".	c red",
+"X	c #808080",
+"o	c black",
+"                ",
+"                ",
+"           .    ",
+"   ..X    ...   ",
+"    ..X  .....  ",
+"     .......oo  ",
+"      .....o    ",
+"      ....o     ",
+"     ......     ",
+"     ..o ...    ",
+"    ..o   ...   ",
+"    .o     ..X  ",
+"   .o       .o  ",
+"   o         o  ",
+"                ",
+"                "};
+
+/***************************************************************
+ * Revision History:
+ * $Log: hideImage.h,v $
+ * Revision 1.4  2004/04/28 18:58:51  dom
+ * Appended log directive
+ * 
+ ***************************************************************/

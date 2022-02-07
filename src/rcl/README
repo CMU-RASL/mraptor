@@ -1,0 +1,68 @@
+
+RCL ("Run-time Config Language") is a language for writing configuration
+files for C/C++ programs.  This directory contains utilities for reading
+and writing RCL files.
+
+BASICS
+------
+
+RCL features:
+
+- Expressions can have atomic types string, long, double, and bool.
+- Expressions can also be nested data structures that contain the atomic types.
+- Map syntax can represent hierarchical structures or named fields in
+  the configuration: {name1=>value1, name2=>value2, ...}
+- Vector syntax for things that are naturally lists: [exp1, exp2, exp3, ...]
+
+See "example.config" for an example of what RCL looks like.
+
+USING THE RCL API
+-----------------
+
+The basic data structure for the RCL utilities is rcl::exp.  rcl::exp
+supports the following kinds of operations:
+
+- Reading from a file or writing the parse tree to a stream:
+
+  rcl::exp expr = rcl::loadConfigFile("example.config");
+  cout << expr << endl;
+
+- Extracting individual values from the configuration or inserting
+  them into the configuration:
+
+  long x = exp.getLong();
+  bool b = exp("objects")[0].getBool();
+
+  exp = 3;
+  exp("b") = true;
+
+- Many other operations.  The testRCL example application provides
+  examples.  Source is in testRCL.cc.  Compile with 'make TEST=1 install'
+  to generate the testRCL binary.
+  
+XML FRONT END
+-------------
+
+The same rcl::exp API that supports RCL files can now be used
+with XML files.
+
+In order to compile the XML front end, you must have the 'expat' XML
+parsing library installed (get the 'expat' and 'expat-devel' rpms).
+Compile with 'make RCLXML=1 TEST=1 install' to generate the testRCLXML
+binary.  Run 'testRCLXML example.xml' to see how XML is translated into
+an RCL expression that you can handle like any other.
+
+The basic XML front end operations are shown here:
+
+  // read an rcl::exp from an XML file
+  rcl::exp expr = rcl::xml::readFromFile("example.xml");
+  // afterwards, access structure of expr as usual
+  // output XML
+  cout << rcl::xml::toString(expr) << endl;
+
+TODO
+----
+
+- Better documentation
+
+- Make internals less arcane

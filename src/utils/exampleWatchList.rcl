@@ -1,0 +1,52 @@
+# Example watchlist config for mrmonitor
+# Elements of a process entry (unless otherwise noted, the value of
+#   each element is interpreted as a command to run via system when that
+#   state is reached).  Any of these may be ommitted, in which case no
+#   action is taken upon reaching that state.
+#
+#   running =>     execute when process moves to running state
+#   clean_exit =>  execute when process exits cleanly (e.g. exit(0))
+#   error_exit =>  execute when process exits with an error
+#                      (e.g. exit(1))
+#   signal_exit => execute when process is killed by an uncaught
+#                      signal
+#
+# NOTE: RESTART FUNCTIONALITY IS NOT YET IMPLEMENTED
+#
+#   restart_on_clean_exit => integer number of times to try restarting
+#                             a process when it exits cleanly
+#                             (defaults to 0)
+#   restart_on_error_exit => integer number of times to try restarting
+#                             a process when it exits cleanly
+#                             (defaults to 0)
+#   restart_on_signal_exit => integer number of times to try restarting
+#                             a process when it exits cleanly
+#                             (defaults to 0)
+#   restart_on_signal_exit_mask => space-separated string of signal
+#                                  numbers on which we should _not_
+#                                  try to restart, regardless of the
+#                                  value of restart_on_signal_exit
+#                                  (defaults to "5 9"; moot if
+#                                  restart_on_signal_exit is not
+#                                  present or 0)
+#
+# Available patterns for use in the executed string:
+#   %n = process name (actually, name of mraptor process entry; by
+#                      convention, this is the process name)
+#   %s = uncaught signal number (only valid in on_signal_exit)
+#   %t = timestamp (as returned by time(), seconds since the Epoch)
+
+
+{
+ ALL => { running => "echo %n running %t",
+        clean_exit => "echo %n clean exit %t",
+        error_exit => "echo %n error exit %t",
+        signal_exit => "echo %n signal %s exit %t",
+        restart_on_clean_exit => 0,
+        restart_on_error_exit => 3,
+        restart_on_signal_exit => 3,
+        restart_on_signal_exit_mask => ""
+      }
+}
+
+

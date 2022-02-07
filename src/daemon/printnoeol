@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+
+$| = 1; # autoflush
+
+while (1) {
+    print "1";
+    sleep(1);
+    print "2";
+    sleep(1);
+    print "3\n";
+    sleep(1);
+}

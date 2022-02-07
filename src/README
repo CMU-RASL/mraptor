@@ -1,0 +1,24 @@
+
+Directories
+
+ttyclient - text-based interface to mraptor
+client    - The microraptor GUI ("claw")
+daemon    - The daemon that sits on the robot and waits for GUI commands
+rcl       - The language used for both client/daemon comm and the client
+            config file
+common    - Utilities need by several modules (commonTime, etc)
+docs      - All documentation
+
+Packages needed:
+Xmu (libxmu-dev)
+gtk (libgtk2.0-dev)
+
+To install (from src):
+make install
+sudo cp scripts/mraptord.conf /etc/.
+sudo cp scripts/mraptord /etc/init.d/.
+sudo cp ../bin/common/printConfigFile.perl /usr/bin/.
+
+Either:
+ a) cp bin/linux2/mraptord, bin/linux2/claw and ipc central to /usr/bin; or
+ b) edit /etc/mraptor.conf to point to correct locations of the binaries
