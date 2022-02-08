@@ -24,11 +24,11 @@ endif
 SUBDIRS := 
 
 CFLAGS += -I$(EXTERNAL_DIR)/ipc/include -I$(EXTERNAL_DIR)/include
-LDFLAGS += -L$(EXTERNAL_DIR)/ipc/lib/Linux
+LDFLAGS += -L$(EXTERNAL_DIR)/ipc/lib
 
 CPPFLAGS += -DCYGWIN
 #CFLAGS +=
-#LDFLAGS += -L$(ATACAMA_MEMBERS_DIR)/software/external/lib/Linux-2.4
+#LDFLAGS += -L$(ATACAMA_MEMBERS_DIR)/software/external/lib
 
 # add extra files to clean up with 'gmake clean' here
 LOCAL_CLEAN_FILES := 

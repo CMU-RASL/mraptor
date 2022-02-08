@@ -24,12 +24,12 @@ endif
 SUBDIRS :=
 
 CFLAGS += -I$(EXTERNAL_DIR)/ipc/include -I$(EXTERNAL_DIR)/include
-LDFLAGS += -L$(EXTERNAL_DIR)/ipc/lib/Linux
+LDFLAGS += -L$(EXTERNAL_DIR)/ipc/lib
 
 #Add this Library directory to attempt linking to -lmrclient and -lrcl
 # EXTERNAL CORRESPONDS TO ./mraptor-dev/software/mraptor/external/
-# ./mraptor/src/rcl/lib/linux2/librcl.a
-LDFLAGS += -L$(EXTERNAL_DIR)/../src/rcl/lib/linux2/
+# ./mraptor/src/rcl/lib/librcl.a
+LDFLAGS += -L$(EXTERNAL_DIR)/../src/rcl/lib/
 
 # build a binary (you can use this multiple times)
 ifneq (,$(STATIC))

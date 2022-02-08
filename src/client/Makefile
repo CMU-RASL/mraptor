@@ -25,7 +25,7 @@ SUBDIRS :=
 
 CFLAGS += -I$(EXTERNAL_DIR)/ipc/include -I$(EXTERNAL_DIR)/include
 CFLAGS += -Wno-deprecated -Wno-deprecated-declarations -Wno-unused-result
-LDFLAGS += -L$(EXTERNAL_DIR)/ipc/lib/Linux
+LDFLAGS += -L$(EXTERNAL_DIR)/ipc/lib
 
 CFLAGS += -g
 
