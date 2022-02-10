@@ -1,0 +1,15 @@
+[Unit]
+Description=mraptord service
+
+[Service]
+Type=forking
+#User=gamebot
+ExecStart=/etc/init.d/mraptord start
+
+ExecStop=/etc/init.d/mraptord stop
+
+Restart = always
+
+[Install]
+WantedBy=multi-user.target
+

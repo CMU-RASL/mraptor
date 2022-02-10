@@ -70,7 +70,6 @@ start () {
 
     export PATH=.:$PATH
     export CENTRALHOST=$centralhost
-
     
     if [ ${#prelaunchfile} -eq 0 ]; then
         prelaunchfilestr=""
@@ -91,7 +90,6 @@ start () {
 	  su - $user -c "$centralProg -s -lx -u -p1382 >& /dev/null &"
        elif [ "$DIST" == "Ubuntu" ] ; then
           start-stop-daemon --start --pidfile $IPCPIDFILE --exec $centralProg -c $user --make-pidfile --background -- -s -lx -u -p1382 >& /dev/null
-	  #su - $user -c "$centralProg -s -lx -u -p1382 >& /dev/null &"
        fi
 
 
@@ -138,7 +136,7 @@ start () {
         #su - $user -c "${prelaunchfilestr}$mraptordProg -d ${configfilestr} >& /tmp/mraptordLog &"
         su - $user -c ${prelaunchfilestr} " ${prelaunchfilestr2}$mraptordProg -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& /tmp/mraptordLog &"
     elif [ "$DIST" == "Ubuntu" ] ; then
-	start-stop-daemon --start --pidfile $MRPIDFILE --exec $mraptordProg -c $user --make-pidfile --background -- -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& /tmp/mraptordLog
+	start-stop-daemon --start --pidfile $MRPIDFILE --exec /usr/bin/env DISPLAY=$DISPLAY $mraptordProg -c $user --make-pidfile --background -- -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& /tmp/mraptordLog
     fi
 
     RETVAL=$?
