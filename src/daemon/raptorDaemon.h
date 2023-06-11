@@ -106,7 +106,7 @@ protected:
 
   Process_Record get_process(const string& process_name,
 			     const string& action_text,
-			     bool must_be_local = true);
+			     bool must_be_local = false);
 
   void _handle_set_variable(const string& which_client, int command_id,
 			    const rcl::exp& e);
