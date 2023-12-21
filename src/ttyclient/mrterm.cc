@@ -370,6 +370,22 @@ static void response_handler(const string& which_daemon,
   delete[] lbuf;
 }
 
+static const char*findCentralhost() {
+  ifstream confFile;
+  confFile.open("/etc/mraptord.conf");
+  if (confFile.is_open()) {
+    string line, prefix="centralhost=";
+    while (not confFile.eof()) {
+      getline(confFile, line);
+      if (line.compare(0, prefix.length(), prefix) == 0) {
+	//printf("%s\n", line.substr(prefix.length()).c_str());
+	return line.substr(prefix.length()).c_str();
+      }
+    }
+  }
+  return NULL;
+}
+
 static void usage(void) {
   cerr <<
     "usage: mrterm OPTIONS\n"
@@ -394,6 +410,7 @@ int main(int argc, char **argv) {
   string daemon_ipc_name = "";
   string arg;
   bool debug_mode = false;
+  bool noCentralhost = true;
   for (int argi=1; argi < argc; argi++) {
     arg = argv[argi];
     if (arg == "-h" || arg == "--help") {
@@ -431,10 +448,17 @@ int main(int argc, char **argv) {
 	usage();
       }
       setenv("CENTRALHOST", argv[argi], /* overwrite = */ 1);
+      noCentralhost = false;
     } else {
       cerr << "ERROR: too many args" << endl << endl;
       usage();
     }
+  }
+
+  if (noCentralhost) {
+    const char *centralhost = findCentralhost();
+    if (centralhost != NULL)
+      setenv("CENTRALHOST", centralhost, /* overwrite = */ 1);
   }
 
   comm_g = new MR_Comm("c"); // c indicates client
