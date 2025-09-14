@@ -36,8 +36,8 @@ fi
 # Source config file
 source /etc/mraptord.conf
 # Used only on Ubuntu
-IPCPIDFILE=/var/run/ipccentral.pid
-MRPIDFILE=/var/run/mraptord.pid
+IPCPIDFILE=/var/lock/ipccentral.pid
+MRPIDFILE=/var/lock/mraptord.pid
 
 if ! [ -e $mraptordProg ] ; then
     if [ "$DIST" == "Redhat" ] ; then
