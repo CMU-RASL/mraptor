@@ -1,0 +1,22 @@
+For setting up mraptor services:
+* copy mraptord.conf to /etc/.
+* copy mraptord.service and ipc.service to /etc/systemd/system/.
+* if pkaction --version < 0.106:
+    copy 50-mraptor.pkla to /etc/polkit-1/localauthority/50-local.d/.
+  else
+    copy 50-mraptor.rules to /etc/polkit-1/rules.d
+* for all files make them root:root with permission 0644
+
+* do: 
+    sudo systemctl daemon-reload
+    sudo systemctl enable ipc.service
+    sudo systemctl enable mraptord.service
+* after that, can start/stop/restart simply with:
+    systemctl <verb> mraptord.servic (no need to start IPC separately)
+* you can check if they've started with:
+    ps -auxw | grep central
+  you should see both central and mraptord running
+
+
+mraptord and mraptord.sysv are older versions 
+  and may or may not still work on older systems

@@ -1,0 +1,28 @@
+[Unit]
+Description=IPC Central daemon (ipccentral)
+Wants=network-online.target
+After=network-online.target
+PartOf=mraptord.service
+
+[Service]
+Type=simple
+User=robocept
+Group=robocept
+UMask=0022
+EnvironmentFile=/etc/mraptord.conf
+RuntimeDirectory=ipccentral
+
+ExecStartPre=/bin/sh -c 'test "$stance" = "primary"'
+
+
+# Adjust the binary path/flags to your real values
+# If you used DISPLAY before, keep it in the env file (see below)
+ExecStart=/bin/sh -c 'exec "$centralProg" -s -lx -u -p1382'
+
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
