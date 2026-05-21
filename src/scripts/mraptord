@@ -36,8 +36,8 @@ fi
 # Source config file
 source /etc/mraptord.conf
 # Used only on Ubuntu
-IPCPIDFILE=/var/run/ipccentral.pid
-MRPIDFILE=/var/run/mraptord.pid
+IPCPIDFILE=/var/lock/ipccentral.pid
+MRPIDFILE=/var/lock/mraptord.pid
 
 if ! [ -e $mraptordProg ] ; then
     if [ "$DIST" == "Redhat" ] ; then
@@ -131,12 +131,13 @@ start () {
         options_str="${options_str} --rate-limit-stdin ${rate_limit_stdin}";
     fi    
 
-    rm -f /tmp/mraptordLog
+    LOGFILE=/tmp/mraptordLog_$USER
+    rm -f $LOGFILE
     if [ "$DIST" == "Redhat" ] ; then
-        #su - $user -c "${prelaunchfilestr}$mraptordProg -d ${configfilestr} >& /tmp/mraptordLog &"
-        su - $user -c ${prelaunchfilestr} " ${prelaunchfilestr2}$mraptordProg -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& /tmp/mraptordLog &"
+        #su - $user -c "${prelaunchfilestr}$mraptordProg -d ${configfilestr} >& $LOGFILE &"
+        su - $user -c ${prelaunchfilestr} " ${prelaunchfilestr2}$mraptordProg -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& $LOGFILE &"
     elif [ "$DIST" == "Ubuntu" ] ; then
-	start-stop-daemon --start --pidfile $MRPIDFILE --exec /usr/bin/env DISPLAY=$DISPLAY $mraptordProg -c $user --make-pidfile --background -- -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& /tmp/mraptordLog
+	start-stop-daemon --start --pidfile $MRPIDFILE --exec /usr/bin/env DISPLAY=$DISPLAY $mraptordProg -c $user --make-pidfile --background -- -d --centralhost ${centralhost} ${options_str} ${configfilestr} >& $LOGFILE
     fi
 
     RETVAL=$?

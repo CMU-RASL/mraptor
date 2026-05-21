@@ -1,15 +1,27 @@
 [Unit]
-Description=mraptord service
+Description=Microraptor daemon (mraptord)
+Wants=network-online.target
+After=network-online.target
+Requires=ipc.service
+After=ipc.service
 
 [Service]
-Type=forking
-#User=gamebot
-ExecStart=/etc/init.d/mraptord start
+Type=simple
+EnvironmentFile=/etc/mraptord.conf
+User=robocept
+Group=robocept
+UMask=0022
+RuntimeDirectory=mraptord
 
-ExecStop=/etc/init.d/mraptord stop
+ExecStart=/bin/sh -c 'exec "$mraptordProg" -d --centralhost "$centralhost" $options -c "$mraptordConfig"'
 
-Restart = always
+# systemd will send SIGTERM on stop; no need for ExecStop unless you want custom behavior
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=5s
+
+StandardOutput=journal
+StandardError=inherit
 
 [Install]
 WantedBy=multi-user.target
-

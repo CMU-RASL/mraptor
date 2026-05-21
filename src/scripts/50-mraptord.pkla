@@ -1,0 +1,4 @@
+[Allow robocept to manage systemd units]
+Identity=unix-group:robocept
+Action=org.freedesktop.systemd1.manage-units
+ResultAny=yes
