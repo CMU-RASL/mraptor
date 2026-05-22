@@ -2,13 +2,12 @@
   Backend interface used by the Qt UI.
 """
 from __future__ import annotations
-import os
 from dataclasses import dataclass
 from typing import Callable, Optional, Protocol, runtime_checkable
-import os, getpass, socket
+import os, getpass, socket, re, subprocess
 
 import IPC
-from models import ProcessInfo
+from models import ProcessInfo, GroupInfo
 
 def daemon_from_msg(msg_name):
     # msg name is "mr_d_<daemon>_<pid>_to..."
@@ -54,7 +53,7 @@ class BackendCallbacks:
     output_received: Callable[[str, str, str], None]
     message_received: Callable[[str], None]
     disconnected: Callable[[str], None]
-
+    groups_received: Callable[[dict[str, list[str]]], None]
 
 class ClawBackend:
     def __init__(self, verbose=False) -> None:
@@ -86,7 +85,7 @@ class ClawBackend:
         if self.verbose: print("PING_HANDLER:", moduleName)
         if (moduleName != self.moduleName and 
             moduleName not in self.connections):
-            self.try_add(moduleName)
+            self._try_add(moduleName)
             IPC.IPC_publishData("mr_search_ping", self.moduleName);
 
     def _ack_handler(self, moduleName):
@@ -107,7 +106,12 @@ class ClawBackend:
             if cmd == 'stdout':
                 self._updateOutput(daemon, text)
             elif cmd == 'config':
-                print("Received config")
+                # extract groups
+                m = re.search(r'groups=\{(.*?)\},processes=', text, re.DOTALL)
+                groups = [GroupInfo(key, value.split())
+                          for key, value in re.findall(r'(\w+)="([^"]*)"', m.group(1))]
+                if self.verbose: print("Got groups:", groups)
+                self.callbacks.groups_received(groups)
             elif cmd == 'response':
                 if text != 'ok':
                     self.callbacks.message_received(text)
@@ -150,10 +154,9 @@ class ClawBackend:
 
     count = 0
     def poll(self) -> None:
-        if self.count%20 == 0:
+        if self.count == 0:
             self._getProcessStatuses()
-            self.count = 0
-        self.count += 1
+            self.count += 1
         # IPC here
         IPC.IPC_listenWait(100)
 
@@ -187,6 +190,11 @@ class ClawBackend:
         return True
 
     def load_config(self, filename:str) -> bool:
+        text = subprocess.run([filename], capture_output=True,
+                              text=True, check=True).stdout
+        self._sendToConnection(None, f'set config {text}')
         if self.callbacks:
             self.callbacks.message_received(f"Load config requested: {filename}")
+        # Update the configuration locally
+        self._sendToConnection(None, "get config -a")
         return True 

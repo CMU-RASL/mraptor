@@ -33,7 +33,7 @@ class ProcessInfo:
 @dataclass#(slots=True)
 class GroupInfo:
     name: str
-    members: set[Tuple[str, str]] = field(default_factory=set)
+    members: List[str]
 
 
 class ProcessRegistry:
@@ -60,13 +60,20 @@ class ProcessRegistry:
         for group in self.groups.values():
             group.members.discard(key)
 
-    def add_group(self, name: str, members: Iterable[Tuple[str, str]] = ()) -> GroupInfo:
-        group = self.groups.setdefault(name, GroupInfo(name=name))
-        group.members.update(members)
+    def add_group(self, name: str, members: Tuple[str] = ()) -> GroupInfo:
+        group = self.groups.get(name)
+        if group is None:
+            group = GroupInfo(name=name, members=members)
+            self.groups[name] = group
+        else:
+            group.members = set(members)   # replace old members
         return group
 
     def get_process(self, machine: str, name: str) -> Optional[ProcessInfo]:
         return self.processes.get((machine, name))
+
+    def get_group(self, name: str) -> GroupInfo:
+        return self.groups.get(name)
 
     def machines(self) -> list[str]:
         return sorted({machine for machine, _ in self.processes})
