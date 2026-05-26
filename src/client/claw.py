@@ -80,7 +80,7 @@ class ClawMainWindow(QMainWindow):
         self.poll_timer.start(25)
 
         self.status_timer = QTimer(self)
-        self.status_timer.timeout.connect(lambda: self.backend.request_status(None, "-a"))
+        self.status_timer.timeout.connect(self._getAllStatuses)
         self.status_timer.start(1000)
 
         # Reallocate the process/status pane size
@@ -88,6 +88,18 @@ class ClawMainWindow(QMainWindow):
 
         self.tree.setExpandsOnDoubleClick(False)
         self.tree.clicked.connect(self._tree_clicked)
+
+    def _getAllStatuses(self):
+        for machine in self._machine_rows:
+            self.backend.request_status(machine, "-a")
+
+    def _runAll(self):
+        for machine in self._machine_rows:
+            self.backend.run_process(machine, "-a")
+
+    def _killAll(self):
+        for machine in self._machine_rows:
+            self.backend.kill_process(machine, "-a")
 
     def _resize_tree_columns(self):
         header = self.tree.header()
@@ -128,8 +140,8 @@ class ClawMainWindow(QMainWindow):
         process_menu.addAction("Subscribe selected", self.subscribe_selected)
         process_menu.addAction("Unsubscribe selected", self.unsubscribe_selected)
         process_menu.addSeparator()
-        process_menu.addAction("Run all", lambda: self.backend.run_process(None, "-a"))
-        process_menu.addAction("Kill all", lambda: self.backend.kill_process(None, "-a"))
+        process_menu.addAction("Run all", self._runAll)
+        process_menu.addAction("Kill all", self._killAll)
 
     status_colors = {"not_started": QColor("gray"), "running": QColor("green"),
                      "signal_exit": QColor("red"),  "error_exit": QColor("red"),

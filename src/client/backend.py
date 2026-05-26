@@ -136,10 +136,6 @@ class ClawBackend:
             elif cmd == 'status':
                 self._updateProcessStatus(daemon, text)
                 
-    def _getProcessStatuses(self):
-        for connection in self.connections.values():
-            connection.send_msg("get status -a")
-
     def _updateProcessStatus(self, machine, proc_status):
         # proc_status of the form {name="<x>", status="<y>""}
         name = proc_status.split('"')[1]
