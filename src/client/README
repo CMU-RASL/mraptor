@@ -1,0 +1,12 @@
+To run the python version of claw:
+python -m pip install PySide6
+set IPC_DIR to the location of IPC
+set PYTHONPATH $IPC_DIR/python:$IPC_DIR/lib
+set CENTRALHOST to the mraptor central (port 1382)
+python claw.py
+
+To create a standalone executable:
+  1. Install pyinstaller: `python -m pip install pyinstaller`
+  2. May need to sudo apt install libpython3.9
+  3. Run pyinstaller: `pyinstaller --onefile claw.py`
+  4. The executable will be located in the `dist` folder.
