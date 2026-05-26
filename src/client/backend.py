@@ -9,10 +9,15 @@ import os, getpass, socket, re, subprocess
 import IPC
 from models import ProcessInfo, GroupInfo
 
-def daemon_from_msg(msg_name):
+def daemon_from_in_msg(msg_name):
     # msg name is "mr_d_<daemon>_<pid>_to..."
     # return d_<daemon>_<pid>
     return msg_name.split('_to')[0][3:]
+
+def daemon_from_out_msg(msg_name):
+    # msg name is "mr_c_<module>_<pid>_to_d_<daemon>_<pid>"
+    # return d_<daemon>_<pid>
+    return msg_name.split('_to_')[1]
 
 def remove_pid(daemon):
     return daemon[:daemon.rindex('_')]
@@ -23,23 +28,32 @@ def static_ping_handler(_, moduleName, clawBackend):
 def static_ack_handler(_, moduleName, clawBackend):
     clawBackend._ack_handler(moduleName)
 
-def static_message_handler(msg_ref, text, clawBackend):
-    daemon = daemon_from_msg(IPC.IPC_msgInstanceName(msg_ref))
-    clawBackend._message_handler(daemon, text)
+def static_message_handler(msg_ref, text, connection):
+    daemon = daemon_from_in_msg(IPC.IPC_msgInstanceName(msg_ref))
+    connection.client._message_handler(daemon, text)
+
+def static_handler_change(msg_name, num_handlers, connection):
+    connection.client._handler_change(msg_name, num_handlers, connection)
 
 class Connection:
     def __init__(self, daemon, client_backend):
-        client = client_backend.moduleName
         self.daemon = daemon
-        self.client = client        
-        self.in_msg = f"mr_{daemon}_to_{client}"
-        self.out_msg = f"mr_{client}_to_{daemon}"
+        self.client = client_backend
+        client_name = client_backend.moduleName
+        self.in_msg = f"mr_{daemon}_to_{client_name}"
+        self.out_msg = f"mr_{client_name}_to_{daemon}"
         IPC.IPC_defineMsg(self.in_msg, IPC.IPC_VARIABLE_LENGTH, "string")
         IPC.IPC_defineMsg(self.out_msg, IPC.IPC_VARIABLE_LENGTH, "string")
-        IPC.IPC_subscribeData(self.in_msg, static_message_handler, client_backend)
+        IPC.IPC_subscribeData(self.in_msg, static_message_handler, self)
+        IPC.IPC_subscribeHandlerChange(self.out_msg, static_handler_change, self)
+        self.current_num_handlers = IPC.IPC_numHandlers(self.out_msg)
 
     def send_msg(self, msg):
         IPC.IPC_publishData(self.out_msg, msg)
+
+    def disconnect(self):
+        IPC.IPC_unsubscribe(self.in_msg, static_message_handler)
+        IPC.IPC_unsubscribeHandlerChange(self.out_msg, static_handler_change)
 
 @dataclass#(slots=True)
 class BackendCallbacks:
@@ -53,7 +67,7 @@ class BackendCallbacks:
     output_received: Callable[[str, str, str], None]
     message_received: Callable[[str], None]
     disconnected: Callable[[str], None]
-    groups_received: Callable[[dict[str, list[str]]], None]
+    groups_received: Callable[[str, [dict[str, list[str]]]], None]
 
 class ClawBackend:
     def __init__(self, verbose=False) -> None:
@@ -75,7 +89,7 @@ class ClawBackend:
     def start(self, callbacks: BackendCallbacks) -> None:
         """Connect to the backend and retain callbacks for future events."""
         self.callbacks = callbacks
-        callbacks.message_received("backend connected.")
+        self.callbacks.message_received("backend connected.")
 
     def stop(self) -> None:
         """Release backend resources."""
@@ -85,18 +99,22 @@ class ClawBackend:
         if self.verbose: print("PING_HANDLER:", moduleName)
         if (moduleName != self.moduleName and 
             moduleName not in self.connections):
-            self._try_add(moduleName)
+            self._add_connection(moduleName)
             IPC.IPC_publishData("mr_search_ping", self.moduleName);
 
     def _ack_handler(self, moduleName):
         if self.verbose: print("ACK_HANDLER:", moduleName)
         if (moduleName != self.moduleName and 
             moduleName not in self.connections):
-            self._try_add(moduleName)
+            self._add_connection(moduleName)
 
-    def _try_add(self, daemonName):
+    def _add_connection(self, daemonName):
         # The C++ version does fancy stuff - don't think we need it here
         self.connections[daemonName] = Connection(daemonName, self)
+
+    def _remove_connection(self, daemonName):
+        self.callbacks.disconnected(daemonName)
+        del self.connections[daemonName]
 
     def _message_handler(self, daemon, lines):
         if self.verbose: print("message_handler:", daemon, lines)
@@ -108,10 +126,10 @@ class ClawBackend:
             elif cmd == 'config':
                 # extract groups
                 m = re.search(r'groups=\{(.*?)\},processes=', text, re.DOTALL)
-                groups = [GroupInfo(key, value.split())
+                groups = [GroupInfo(daemon, key, value.split())
                           for key, value in re.findall(r'(\w+)="([^"]*)"', m.group(1))]
                 if self.verbose: print("Got groups:", groups)
-                self.callbacks.groups_received(groups)
+                self.callbacks.groups_received(daemon, groups)
             elif cmd == 'response':
                 if text != 'ok':
                     self.callbacks.message_received(text)
@@ -146,18 +164,24 @@ class ClawBackend:
 
     def _sendToConnection(self, machine, msg):
         connection = (self.connections.get(machine) if machine is not None else
+                      None if (len(self.connections) == 0) else
                       next(iter(self.connections.values()))) # Use default machine
         if connection is None:
             self.callbacks.message_received(f"No existing daemon connection!")
         else:
             connection.send_msg(msg)
 
-    count = 0
+    def _handler_change(self, msg_name, num_handlers, connection):
+        # apparently if a module quickly subscribes and then exits, the central
+        # server can send us a spurious change of the number of handlers from
+        # 0 to 0.  just ignore it.
+        if connection.current_num_handlers != num_handlers:
+            connection.current_num_handlers = num_handlers
+            if num_handlers == 0:
+                daemon = daemon_from_out_msg(msg_name)
+                self._remove_connection(daemon)
+
     def poll(self) -> None:
-        if self.count == 0:
-            self._getProcessStatuses()
-            self.count += 1
-        # IPC here
         IPC.IPC_listenWait(100)
 
     def run_process(self, machine: Optional[str], process: Optional[str]) -> bool:

@@ -8,7 +8,8 @@ from PySide6.QtCore import QModelIndex, QPoint, Qt, QTimer
 from PySide6.QtGui import QAction, QStandardItem, QStandardItemModel, QColor
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFileDialog,
                                QMainWindow, QMenu, QMessageBox, QPlainTextEdit,
-                               QSplitter, QTabWidget, QTreeView, QWidget, QHeaderView,)
+                               QSplitter, QTabWidget, QTreeView, QWidget,
+                               QHeaderView,)
 
 from backend import ClawBackend, BackendCallbacks
 from models import NodeType, ProcessInfo, ProcessRegistry, GroupInfo
@@ -23,14 +24,12 @@ ROLE_PROCESS = Qt.UserRole + 3
 class ClawMainWindow(QMainWindow):
     def __init__(self, backend: Backend) -> None:
         super().__init__()
-
         self.backend = backend
         self.registry = ProcessRegistry()
         self._tree_rows: dict[Tuple[str, str], QStandardItem] = {}
+        self._group_rows: dict[Tuple[str, str], QStandardItem] = {}
         self._machine_rows: dict[str, QStandardItem] = {}
         self._panes: dict[Tuple[str, str], ProcessPane] = {}
-        self._groups: dict[str, list[str]] = {}
-        self._groups_menu: QMenu | None = None
 
         self.setWindowTitle("Claw")
         self.resize(1200, 800)
@@ -133,8 +132,9 @@ class ClawMainWindow(QMainWindow):
         process_menu.addAction("Kill all", lambda: self.backend.kill_process(None, "-a"))
 
     status_colors = {"not_started": QColor("gray"), "running": QColor("green"),
-                     "signal_exit": QColor("red"), "error_exit": QColor("red"),
-                     "clean_exit": QColor("gray"), "pending": QColor("orange")}
+                     "signal_exit": QColor("red"),  "error_exit": QColor("red"),
+                     "clean_exit": QColor("gray"),  "pending": QColor("orange"),
+                     "starting": QColor("yellow"),  "group": QColor("blue"),}
 
     def on_process_changed(self, process: ProcessInfo) -> None:
         process = self.registry.upsert_process(process)
@@ -144,7 +144,7 @@ class ClawMainWindow(QMainWindow):
             machine_item.setData(NodeType.MACHINE.value, ROLE_NODE_TYPE)
             machine_item.setData(process.machine, ROLE_MACHINE)
             self._machine_rows[process.machine] = machine_item
-            self.model.appendRow([machine_item, QStandardItem("")])#, QStandardItem("")])
+            self.model.appendRow([machine_item, QStandardItem("")])
 
         proc_item = self._tree_rows.get(process.key)
         if proc_item is None:
@@ -178,27 +178,64 @@ class ClawMainWindow(QMainWindow):
     def on_message_received(self, message: str) -> None:
         self.messages.appendPlainText(message.rstrip())
 
-    def on_groups_received(self, groups: List[GroupInfo]) -> None:
-        groups_root = self._machine_rows.get("__groups__")
-        if groups_root is None:
-            groups_root = QStandardItem("Groups")
-            groups_root.setData(NodeType.GROUP.value, ROLE_NODE_TYPE)
-            self._machine_rows["__groups__"] = groups_root
-            self.model.appendRow([groups_root, QStandardItem(""), QStandardItem("")])
+    def on_groups_received(self, daemon: str, groups: List[GroupInfo]) -> None:
+        machine_item = self._machine_rows.get(daemon)
+        if machine_item is None:
+            machine_item = QStandardItem(daemon)
+            machine_item.setData(NodeType.MACHINE.value, ROLE_NODE_TYPE)
+            machine_item.setData(daemon, ROLE_MACHINE)
+            self._machine_rows[daemon] = machine_item
+            self.model.appendRow([machine_item, QStandardItem("")])
+
+        incoming_groups = {group.name for group in groups}
+
+        for key in [k for k in self._group_rows if k[0] == daemon and k[1] not in incoming_groups]:
+            group_item = self._group_rows.pop(key)
+            parent = group_item.parent()
+            if parent is not None:
+                parent.removeRow(group_item.row())
 
         for group in groups:
             group_name, group_members = group.name, group.members
-            group_item = self._tree_rows.get(("__group__", group_name))
+            group_item = self._group_rows.get((daemon, group_name))
             if group_item is None:
                 group_item = QStandardItem(group_name)
                 group_item.setData(NodeType.GROUP.value, ROLE_NODE_TYPE)
-                self._tree_rows[("__group__", group_name)] = group_item
-                groups_root.appendRow([group_item, QStandardItem(""), QStandardItem("")])
-            self.registry.add_group(group_name, group_members)
+                group_item.setData(daemon, ROLE_MACHINE)
+                group_item.setData(group_name, ROLE_PROCESS)
+                status_item = QStandardItem("group")
+                machine_item.appendRow([group_item, status_item])
+                self._group_rows[(daemon, group_name)] = group_item
+            else:
+                status_item = group_item.parent().child(group_item.row(), 1)
+                status_item.setText("group")
+            # Set the font color according to status
+            status_item.setForeground(self.status_colors["group"])
 
-    def on_disconnected(self, message: str) -> None:
-        QMessageBox.critical(self, "Backend disconnected", message)
-        QApplication.instance().quit()
+            self.registry.add_group(daemon, group_name, group_members)
+
+    # Daemon has gone down - clean up on aisle 5
+    def on_disconnected(self, daemon: str) -> None:
+        self.on_message_received(f"WARNING: {daemon} disconnected!")
+        # close all open tabs for this daemon
+        doomed = [key for key in self._panes if key[0] == daemon]
+        for machine, process_name in doomed:
+            self.hide_process(machine, process_name)
+
+        # remove the machine row from the tree
+        machine_item = self._machine_rows.pop(daemon, None)
+        if machine_item is not None:
+            self.model.removeRow(machine_item.row())
+
+        # remove process rows from the registry/tree caches
+        doomed_rows = [key for key in self._tree_rows if key[0] == daemon]
+        for key in doomed_rows:
+            self._tree_rows.pop(key, None)
+
+        # remove any group rows for this daemon
+        doomed_groups = [key for key in self._group_rows if key[0] == daemon]
+        for key in doomed_groups:
+            self._group_rows.pop(key, None)
 
     def load_config(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(self, "Config File", "", "All Files (*.*)",
@@ -300,11 +337,17 @@ class ClawMainWindow(QMainWindow):
                 seen.add(proc.key)
         return results
 
-    def run_group(self, group_name: str) -> None:
-        self.backend.run_process(None, group_name)
+    def run_group(self, machine: str, group_name: str) -> None:
+        group = self.registry.get_group(machine, group_name)
+        if group is not None:
+            for process_name in group.members:
+                self.backend.run_process(machine, process_name)
 
-    def kill_group(self, group_name: str) -> None:
-        self.backend.kill_process(None, group_name)
+    def kill_group(self, machine: str, group_name: str) -> None:
+        group = self.registry.get_group(machine, group_name)
+        if group is not None:
+            for process_name in group.members:
+                self.backend.kill_process(machine, process_name)
 
     def open_tree_menu(self, pos: QPoint) -> None:
         index = self.tree.indexAt(pos)
@@ -313,14 +356,15 @@ class ClawMainWindow(QMainWindow):
         menu = QMenu(self)
         if node_type == NodeType.GROUP.value:
             group_name = item.text()
-            process_names = self.registry.get_group(group_name).members
-            print("HERE", group_name, process_names)
-            label = QAction("Procs: " + ", ".join(process_names), menu)
+            daemon = item.parent().text()
+            group = self.registry.get_group(daemon, group_name)
+            member_text = "(none)" if group.members is None else ", ".join(group.members)  
+            label = QAction("Procs: " + member_text, menu)
             label.setEnabled(False)
             menu.addAction(label)
             menu.addSeparator()
-            menu.addAction("Run selected", lambda g=group_name: self.run_group(g))
-            menu.addAction("Kill selected", lambda g=group_name: self.kill_group(g))
+            menu.addAction("Run selected", lambda d=daemon, g=group_name: self.run_group(d, g))
+            menu.addAction("Kill selected", lambda d=daemon, g=group_name: self.kill_group(d, g))
         elif node_type == NodeType.PROCESS.value:
             menu.addAction("View selected", self.view_selected)
             menu.addAction("Run selected", self.run_selected)
@@ -328,8 +372,8 @@ class ClawMainWindow(QMainWindow):
             menu.addAction("Subscribe selected", self.subscribe_selected)
             menu.addAction("Unsubscribe selected", self.unsubscribe_selected)
             signal_menu = menu.addMenu("Signal selected")
-            for signal_name in ("SIGINT", "SIGTERM", "SIGKILL", "SIGHUP"):
-                signal_menu.addAction(signal_name, lambda checked=False, s=signal_name: self.signal_selected(s))
+            for signal_name in ("INT", "TERM", "KILL", "HUP"):
+                signal_menu.addAction("SIG"+signal_name, lambda checked=False, s=signal_name: self.signal_selected(s))
         menu.exec(self.tree.viewport().mapToGlobal(pos))
 
     def signal_selected(self, signal_name: str) -> None:

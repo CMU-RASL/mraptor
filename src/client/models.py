@@ -32,6 +32,7 @@ class ProcessInfo:
 
 @dataclass#(slots=True)
 class GroupInfo:
+    machine: str
     name: str
     members: List[str]
 
@@ -41,7 +42,7 @@ class ProcessRegistry:
 
     def __init__(self) -> None:
         self.processes: Dict[Tuple[str, str], ProcessInfo] = {}
-        self.groups: Dict[str, GroupInfo] = {}
+        self.groups: Dict[Tuple[str, str], GroupInfo] = {}
 
     def upsert_process(self, process: ProcessInfo) -> ProcessInfo:
         existing = self.processes.get(process.key)
@@ -54,26 +55,35 @@ class ProcessRegistry:
         existing.group = process.group or existing.group
         return existing
 
-    def remove_process(self, machine: str, name: str) -> None:
-        key = (machine, name)
-        self.processes.pop(key, None)
-        for group in self.groups.values():
-            group.members.discard(key)
-
-    def add_group(self, name: str, members: Tuple[str] = ()) -> GroupInfo:
-        group = self.groups.get(name)
+    def add_group(self, machine: str, name: str, members: Tuple[str] = ()) -> GroupInfo:
+        group = self.groups.get((machine, name))
         if group is None:
-            group = GroupInfo(name=name, members=members)
-            self.groups[name] = group
+            group = GroupInfo(machine=machine, name=name, members=members)
+            self.groups[(machine, name)] = group
         else:
             group.members = set(members)   # replace old members
         return group
 
+    def remove_machine(self, machine: str) -> None:
+        # remove processes for this machine
+        for _machine, _name in self.processes:
+            if _machine == machine:
+                self.remove_process(machine, _name)
+        for group in self.groups:
+            if group.machine == machine:
+                self.remove_group(group.machine, group.name)
+
+    def remove_process(self, machine: str, name: str) -> None:
+        del self.processes[(machine, name)]
+
+    def remove_group(self, machine: str, name: str) -> None:
+        del self.groups[(machine, name)]
+
     def get_process(self, machine: str, name: str) -> Optional[ProcessInfo]:
         return self.processes.get((machine, name))
 
-    def get_group(self, name: str) -> GroupInfo:
-        return self.groups.get(name)
+    def get_group(self, machine: str, name: str) -> GroupInfo:
+        return self.groups.get((machine, name))
 
     def machines(self) -> list[str]:
         return sorted({machine for machine, _ in self.processes})
