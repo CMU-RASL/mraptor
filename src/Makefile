@@ -19,11 +19,7 @@ include $(CHECKOUT_DIR)/src/Build/header.mak
 ifdef JUST_RCL
   SUBDIRS = common rcl
 else
-  ifdef NO_CLAW
-    SUBDIRS = common rcl daemon ttyclient
-  else
-    SUBDIRS = common rcl daemon ttyclient client
-  endif
+  SUBDIRS = common rcl daemon ttyclient
 endif
 
 ifdef BUILD_UTILS
