@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 from __future__ import annotations
 
-import sys
+import sys, argparse
 from fileinput import filename
 from typing import Optional, Tuple
 
@@ -393,12 +393,19 @@ class ClawMainWindow(QMainWindow):
         for proc in self._selected_processes():
             self.backend.signal_process(proc.machine, proc.name, signal_name)
 
-def main() -> int:
+def main(centralhost: str) -> int:
     app = QApplication(sys.argv)
-    window = ClawMainWindow(ClawBackend())
+    window = ClawMainWindow(ClawBackend(centralhost=centralhost))
     window.show()
     return app.exec()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    centralhost_default = "localhost:1382"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--centralhost", default=centralhost_default,
+                         help=("Central server for mraptor daemons (default: %s)"
+                               %centralhost_default))
+    args = parser.parse_args()
+
+    raise SystemExit(main(args.centralhost))
