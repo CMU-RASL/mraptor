@@ -70,13 +70,12 @@ class BackendCallbacks:
     groups_received: Callable[[str, [dict[str, list[str]]]], None]
 
 class ClawBackend:
-    def __init__(self, verbose=False) -> None:
+    def __init__(self, centralhost:str, verbose=False) -> None:
         self.callbacks = None
         self.processes = []
         self.connections = {}
         self.verbose = verbose
         # Connect to IPC & subscribe
-        centralhost = os.environ.get('CENTRALHOST','localhost:1382')
         hostname = socket.gethostname().split('.')[0]
         self.moduleName = f"c_{getpass.getuser()}@{hostname}_{os.getpid()}"
         IPC.IPC_connectModule(self.moduleName, centralhost)
