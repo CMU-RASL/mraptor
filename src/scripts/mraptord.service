@@ -7,9 +7,7 @@ After=ipc.service
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/mraptord.conf
-User=robocept
-Group=robocept
+EnvironmentFile=%h/.config/mraptord.conf
 UMask=0022
 RuntimeDirectory=mraptord
 

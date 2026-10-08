@@ -6,10 +6,8 @@ PartOf=mraptord.service
 
 [Service]
 Type=simple
-User=robocept
-Group=robocept
 UMask=0022
-EnvironmentFile=/etc/mraptord.conf
+EnvironmentFile=%h/.config/mraptord.conf
 RuntimeDirectory=ipccentral
 
 ExecStartPre=/bin/sh -c 'test "$stance" = "primary"'

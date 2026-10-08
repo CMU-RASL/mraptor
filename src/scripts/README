@@ -1,22 +1,23 @@
 For setting up mraptor services:
-* copy mraptord.conf to /etc/.
-* copy mraptord.service and ipc.service to /etc/systemd/system/.
+* copy mraptord.conf to $HOME/.config/.
+  - edit mraptord.conf for your own needs
+* copy mraptord.service and ipc.service to /etc/systemd/user/.
 * if pkaction --version < 0.106:
     copy 50-mraptor.pkla to /etc/polkit-1/localauthority/50-local.d/.
   else
     copy 50-mraptor.rules to /etc/polkit-1/rules.d
-* for all files make them root:root with permission 0644
+* make mraptord.service and 50-mraptor.rules root:root with permission 0644
 
 * do: 
-    sudo systemctl daemon-reload
-    sudo systemctl enable ipc.service
-    sudo systemctl enable mraptord.service
+    systemctl --user daemon-reload
+    systemctl --user enable ipc.service
+    systemctl --user enable mraptord.service
 * after that, can start/stop/restart simply with:
-    systemctl <verb> mraptord.servic (no need to start IPC separately)
+    systemctl --user <verb> mraptord.service (no need to start IPC separately)
 * you can check if they've started with:
     ps -auxw | grep central
   you should see both central and mraptord running
 
-
-mraptord and mraptord.sysv are older versions 
-  and may or may not still work on older systems
+If more than one person is running on the same machine, you need to change
+the port on centralhost variable in mraptord.conf and if your code uses IPC,
+change the central port number your own code uses.
